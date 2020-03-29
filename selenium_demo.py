@@ -9,23 +9,23 @@ opts = Options()
 # opts.headless = True
 # driver = Firefox(options=opts, executable_path='/opt/WebDriver/geckodriver')
 driver = Chrome(options=opts, executable_path='/opt/WebDriver/geckodriver')
+wait = WebDriverWait(driver, 10)
 
 
-def login():
+def login(username, password):
     driver.get("https://app.convertkit.com/users/login")
 
-    username = driver.find_element_by_id("user_email")
-    password = driver.find_element_by_id("user_password")
+    username_elem = driver.find_element_by_id("user_email")
+    password_elem = driver.find_element_by_id("user_password")
 
-    username.send_keys("01vendors@gmail.com")
-    password.send_keys("Qc4%4P4$")
+    username_elem.send_keys(username)
+    password_elem.send_keys(password)
 
     submit_btn = "/html/body/div[1]/div/div[2]/div[2]/div/div/div[2]/form/button"
     driver.find_element_by_xpath(submit_btn).click()
 
 
 def add_single_subscriber(first_name, email, sequences=None):
-    wait = WebDriverWait(driver, 10)
     wait.until(ec.visibility_of_all_elements_located)
 
     add_subs_btn = driver.find_element_by_css_selector(".break > div:nth-child(1) > a:nth-child(1)")
@@ -48,6 +48,8 @@ def add_single_subscriber(first_name, email, sequences=None):
     # add subscriber(s) #
     #####################
 
+    # wait.until(ec.visibility_of_all_elements_located)  # TODO testing
+
     span_elem = driver.find_elements_by_tag_name("span")
     span_text = []
     for span in span_elem:
@@ -57,14 +59,21 @@ def add_single_subscriber(first_name, email, sequences=None):
     first_name_element.send_keys(first_name)
     email_element.send_keys(email)
 
-    em_elems = driver.find_elements_by_tag_name("em")
-    sequences_dropdown = em_elems[2]
+    # find Sequences dropdown
+    all_em_elems = driver.find_elements_by_tag_name("em")
+    reasonable_opts = []
+    for em_elem in all_em_elems:
+        if "0 of " in em_elem.text:
+            reasonable_opts.append(em_elem)
+
+    sequences_dropdown = reasonable_opts[1]  # 0 = Forms; 1 = Sequences; 2 = Tags
     sequences_dropdown.click()
 
     for label in label_elems:
         for seq_name in sequences:
             if seq_name in label.text:
                 label.click()
+                break
 
     ##############
     # click save #
@@ -76,9 +85,15 @@ def add_single_subscriber(first_name, email, sequences=None):
 
 
 if __name__ == "__main__":
-    login()
-    sequences = ["Monthly Deals", "Survey Request"]
-    add_single_subscriber(first_name="Aatto2", email="aatto@chewy.com", sequences=sequences)
+    sequences = ["New Subscriber"]
+
+    username = ""
+    password = ""
+    first_name = "Stan"
+    email = "foo@bar.com"
+
+    login(username=username, password=password)
+    add_single_subscriber(first_name=first_name, email=email, sequences=sequences)
 
 """
 NOTES
