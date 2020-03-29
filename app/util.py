@@ -52,6 +52,17 @@ def create_logs_dir_if_needed(log_file_path):
             print(f"{type(e): {e}}")
 
 
+def get_all_text_from_html_tag(tag):
+    from app import driver  # local import to avoid circular imports on startup
+    all_text = []
+
+    all_elems = driver.find_elements_by_tag_name(tag)
+
+    for elem in all_elems:
+        all_text.append(elem.text)
+    return all_text
+
+
 def get_config_data_yaml(config_file_path):
     """
     Retrieve full config data from YAML file

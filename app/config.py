@@ -27,3 +27,4 @@ class Config:
     ##########
     ACUITY_USER = util.get_config_value_yaml(CONFIG_DATA, "acuity.username")
     ACUITY_PW = util.get_config_value_yaml(CONFIG_DATA, "acuity.password")
+    ARCHIVE_CSV_NAME = "list_users_previous.csv"

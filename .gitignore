@@ -4,3 +4,4 @@ geckodriver.log
 venv/
 config.dev.yaml
 *.log
+app/__pycache__/
