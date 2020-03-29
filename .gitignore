@@ -3,3 +3,4 @@
 geckodriver.log
 venv/
 config.dev.yaml
+*.log

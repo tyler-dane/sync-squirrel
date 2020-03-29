@@ -1,9 +1,11 @@
 import time
 
-from selenium.webdriver import Firefox,Chrome
+from selenium.webdriver import Chrome
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
+from app import logger
+from app.config import Config
 
 opts = Options()
 # opts.headless = True
@@ -13,6 +15,7 @@ wait = WebDriverWait(driver, 10)
 
 
 def login(username, password):
+    logger.info("Logging in ...")
     driver.get("https://app.convertkit.com/users/login")
 
     username_elem = driver.find_element_by_id("user_email")
@@ -26,6 +29,7 @@ def login(username, password):
 
 
 def add_single_subscriber(first_name, email, sequences=None):
+    logger.info("adding subscriber")
     wait.until(ec.visibility_of_all_elements_located)
 
     add_subs_btn = driver.find_element_by_css_selector(".break > div:nth-child(1) > a:nth-child(1)")
@@ -48,8 +52,6 @@ def add_single_subscriber(first_name, email, sequences=None):
     # add subscriber(s) #
     #####################
 
-    # wait.until(ec.visibility_of_all_elements_located)  # TODO testing
-
     span_elem = driver.find_elements_by_tag_name("span")
     span_text = []
     for span in span_elem:
@@ -66,9 +68,11 @@ def add_single_subscriber(first_name, email, sequences=None):
         if "0 of " in em_elem.text:
             reasonable_opts.append(em_elem)
 
+    # click dropdown
     sequences_dropdown = reasonable_opts[1]  # 0 = Forms; 1 = Sequences; 2 = Tags
     sequences_dropdown.click()
 
+    # click sequence checkbox
     for label in label_elems:
         for seq_name in sequences:
             if seq_name in label.text:
@@ -85,15 +89,11 @@ def add_single_subscriber(first_name, email, sequences=None):
 
 
 if __name__ == "__main__":
-    sequences = ["New Subscriber"]
+    new_user_first_name = "Stan"
+    new_user_email = "foo@bar.com"
 
-    username = ""
-    password = ""
-    first_name = "Stan"
-    email = "foo@bar.com"
-
-    login(username=username, password=password)
-    add_single_subscriber(first_name=first_name, email=email, sequences=sequences)
+    login(username=Config.CONVERT_USER, password=Config.CONVERT_PW)
+    add_single_subscriber(first_name=new_user_email, email=new_user_email, sequences=Config.CONVERT_SEQ)
 
 """
 NOTES
