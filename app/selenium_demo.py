@@ -1,18 +1,7 @@
 import time
 
-from selenium.webdriver import Chrome
-from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as ec
-from app import logger
+from app import logger, driver, wait, ec
 from app.config import Config
-
-opts = Options()
-# opts.headless = True
-# driver = Firefox(options=opts, executable_path='/opt/WebDriver/geckodriver')
-driver = Chrome(options=opts, executable_path='/opt/WebDriver/geckodriver')
-wait = WebDriverWait(driver, 10)
-
 
 def login(username, password):
     logger.info("Logging in ...")
