@@ -5,10 +5,9 @@ from app.config import Config
 
 
 class ConvertKit:
-    def __init__(self, first_name, email, sequences=Config.CONVERT_SEQ):
-        self.first_name = first_name
-        self.email = email
+    def __init__(self, sequences=Config.CONVERT_SEQ):
         self.sequences = sequences
+        self.logged_in = False
 
     def login(self, username, password):
         logger.info("Logging in ...")
@@ -23,25 +22,33 @@ class ConvertKit:
         submit_btn = "/html/body/div[1]/div/div[2]/div[2]/div/div/div[2]/form/button"
         driver.find_element_by_xpath(submit_btn).click()
 
-    def add_single_subscriber(self):
-        self.login(username=Config.CONVERT_USER, password=Config.CONVERT_PW)
-        logger.info("adding subscriber ...")
+    def add_subscribers(self, sub_info):
+        logged_in = False
 
-        try:
-            wait.until(ec.visibility_of_all_elements_located)
-            wait.until(ec.presence_of_all_elements_located)
+        for sub in sub_info:
+            if logged_in is False:
+                self.login(username=Config.CONVERT_USER, password=Config.CONVERT_PW)
+                logged_in = True
 
-            add_subs_btn = driver.find_element_by_css_selector(".break > div:nth-child(1) > a:nth-child(1)")
-            add_subs_btn.click()
+            logger.info("adding subscriber ...")
 
-            self.click_add_single_subscriber_btn()
+            try:
+                wait.until(ec.visibility_of_all_elements_located)
+                wait.until(ec.presence_of_all_elements_located)
+                time.sleep(5) # TODO testing
 
-        except Exception as e:
-            logger.exception(e)
-            driver.quit()
+                add_subs_btn = driver.find_element_by_css_selector(".break > div:nth-child(1) > a:nth-child(1)")
+                add_subs_btn.click()
 
-    def click_add_single_subscriber_btn(self):
+                self._click_add_single_subscriber_btn_and_proceed(first_name=sub["first_name"], email=sub["email"])
+
+            except Exception as e:
+                logger.exception(e)
+                driver.quit()
+
+    def _click_add_single_subscriber_btn_and_proceed(self, first_name, email):
         # TODO break out into smaller methods
+        # TODO add check to make sure user doesn't already exist - otherwise can't save
 
         # time.sleep(5)
         driver.implicitly_wait(10)  # explicit wait wasnt working for single sub btn
@@ -60,8 +67,12 @@ class ConvertKit:
         #####################
         # add subscriber(s) #
         #####################
-        first_name_element.send_keys(self.first_name)
-        email_element.send_keys(self.email)
+        # TODO clear existing before sending
+        # currently first user is cached and second is concated;
+        # TestUser1TestUser2
+        # test@aol.comtest2@new.rr.com <--breaks cuz not valid email
+        first_name_element.send_keys(first_name)
+        email_element.send_keys(email)
 
         # find Sequences dropdown
         all_em_elems = driver.find_elements_by_tag_name("em")
@@ -87,16 +98,17 @@ class ConvertKit:
     def click_save_subscriber_btn(self):
         add_sub_save_btn = "/html/body/div[1]/div/div[2]/div/div[2]/div/div[1]/div/form/button"  # TODO use relative xpath
         driver.find_element_by_xpath(add_sub_save_btn).click()
+        foo = ""
 
 
-if __name__ == "__main__":
-    new_user_first_name = "Stan3"
-    new_user_email = "foo@bar.com"
-
-    ck = ConvertKit(first_name=new_user_first_name, email=new_user_email)
-    ck.add_single_subscriber()
-
-    driver.quit()
+# if __name__ == "__main__":
+    # new_user_first_name = "Stan3"
+    # new_user_email = "foo@bar.com"
+    #
+    # ck = ConvertKit()
+    # ck.add_single_subscriber(first_name=new_user_first_name, email=new_user_email)
+    #
+    # driver.quit()
 
 """
 NOTES
