@@ -31,7 +31,9 @@ class ConvertKit:
                 self.login(username=Config.CONVERT_USER, password=Config.CONVERT_PW)
                 logged_in = True
 
-            logger.info(f"\nadding subscriber ({sub['email']})...\n")
+            first_name = sub["first_name"]
+            email = sub["email"]
+            logger.info(f"\nadding subscriber ({email})...\n")
 
             try:
                 wait.until(ec.visibility_of_all_elements_located)
@@ -39,9 +41,16 @@ class ConvertKit:
                 time.sleep(5)  # TODO testing
 
                 self._click_add_subs_home_btn()
-                self._click_add_single_sub_btn_and_proceed(first_name=sub["first_name"], email=sub["email"])
+                self._click_add_single_sub_btn(first_name=first_name, email=email)
+                self._enter_name_and_email(first_name=first_name, email=email)
+                self._click_sequences_dropdown()
+                self._click_sequences_checkboxes()
+                self._click_save_subscriber_btn()
+
             except Exception as e:
                 logger.exception(e)
+                print("sleeping before quitting ...")
+                time.sleep(10)
                 driver.quit()
 
     def _click_add_subs_home_btn(self):
@@ -54,18 +63,30 @@ class ConvertKit:
             logger.info(f"\nretrying..\n")
             self._click_add_subs_home_btn()
 
-    def _click_add_single_sub_btn_and_proceed(self, first_name, email):
+    def _click_add_single_sub_btn(self, first_name, email):
         # TODO break out into smaller methods
         # TODO add check to make sure user doesn't already exist - otherwise can't save
 
         logger.info("\nClicking Add Single Subscriber button ...\n")
         try:
-            # time.sleep(5)
-            driver.implicitly_wait(10)  # explicit wait wasnt working for single sub btn
+            time.sleep(4)
+            driver.implicitly_wait(10)  # explicit driver wait wasnt working for single sub btn
 
-            single_sub_btn = driver.find_element_by_class_name("btn--step--single-sub")
+            # this alone didnt fix, needed sleep
+            # single_sub_btn = wait.until(ec.element_to_be_clickable((By.CLASS_NAME, "btn--step--single-sub")))
+            single_sub_btn = driver.find_element_by_class_name("btn--step--single-sub")  # orig, worked but fickle
+            print("***\nFound Single Sub Button\n***")
             single_sub_btn.click()
+            print("!!! clicked singl sub button !!!")
+            time.sleep(2)
 
+        except (NoSuchElementException, TimeoutException) as ne:
+            logger.info(f"\nretrying after {repr(ne)}..\n")
+            time.sleep(2)
+            self._click_add_single_sub_btn(first_name, email)
+
+    def _enter_name_and_email(self, first_name, email):
+        try:
             ########################
             # enter name and email #
             ########################
@@ -88,6 +109,13 @@ class ConvertKit:
             first_name_element.send_keys(first_name)
             email_element.send_keys(email)
 
+        except (NoSuchElementException, TimeoutException) as ne:
+            logger.info(f"\nFailed entering name & email. Trying again ...\n")
+            time.sleep(1)
+            self._enter_name_and_email(first_name, email)
+
+    def _click_sequences_dropdown(self):
+        try:
             # find Sequences dropdown
             all_em_elems = driver.find_elements_by_tag_name("em")
             reasonable_opts = []
@@ -99,6 +127,13 @@ class ConvertKit:
             sequences_dropdown = reasonable_opts[1]  # 0 = Forms; 1 = Sequences; 2 = Tags
             sequences_dropdown.click()
 
+        except (NoSuchElementException, TimeoutException) as ne:
+            logger.info(f"\nFailed clicking sequences dropdown. Trying again ...\n")
+            time.sleep(1)
+            self._click_sequences_dropdown()
+
+    def _click_sequences_checkboxes(self):
+        try:
             # click sequence checkbox
             label_elems = driver.find_elements_by_tag_name("label")
             for label in label_elems:
@@ -106,18 +141,16 @@ class ConvertKit:
                     if seq_name in label.text:
                         label.click()
                         break
-
         except (NoSuchElementException, TimeoutException) as ne:
-            logger.info(f"\nretrying after {repr(ne)}..\n")
-            time.sleep(2)
-            self._click_add_single_sub_btn_and_proceed(first_name, email)
+            logger.info(f"\nFailed clicking sequences checkboxes. Trying again ...\n")
+            time.sleep(1)
+            self._click_sequences_checkboxes()
 
-        self.click_save_subscriber_btn()
-
-    def click_save_subscriber_btn(self):
+    def _click_save_subscriber_btn(self):
+        logger.info("\nClicking Save button ...\n")
         add_sub_save_btn = "/html/body/div[1]/div/div[2]/div/div[2]/div/div[1]/div/form/button"  # TODO use relative xpath
         driver.find_element_by_xpath(add_sub_save_btn).click()
-        foo = ""
+        logger.info("\tClicked Save button")
 
 
 if __name__ == "__main__":
