@@ -1,5 +1,6 @@
 import time
-
+from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from app import logger, driver, wait, ec, util
 from app.config import Config
 
@@ -30,68 +31,86 @@ class ConvertKit:
                 self.login(username=Config.CONVERT_USER, password=Config.CONVERT_PW)
                 logged_in = True
 
-            logger.info("adding subscriber ...")
+            logger.info(f"\nadding subscriber ({sub['email']})...\n")
 
             try:
                 wait.until(ec.visibility_of_all_elements_located)
                 wait.until(ec.presence_of_all_elements_located)
-                time.sleep(5) # TODO testing
+                time.sleep(5)  # TODO testing
 
-                add_subs_btn = driver.find_element_by_css_selector(".break > div:nth-child(1) > a:nth-child(1)")
-                add_subs_btn.click()
-
-                self._click_add_single_subscriber_btn_and_proceed(first_name=sub["first_name"], email=sub["email"])
-
+                self._click_add_subs_home_btn()
+                self._click_add_single_sub_btn_and_proceed(first_name=sub["first_name"], email=sub["email"])
             except Exception as e:
                 logger.exception(e)
                 driver.quit()
 
-    def _click_add_single_subscriber_btn_and_proceed(self, first_name, email):
+    def _click_add_subs_home_btn(self):
+        logger.info("\nclicking Add Subscribers button ...\n")
+        try:
+            # try getting elem by id?
+            add_subs_btn = driver.find_element_by_css_selector(".break > div:nth-child(1) > a:nth-child(1)")
+            add_subs_btn.click()
+        except (NoSuchElementException, TimeoutException) as ne:
+            logger.info(f"\nretrying..\n")
+            self._click_add_subs_home_btn()
+
+    def _click_add_single_sub_btn_and_proceed(self, first_name, email):
         # TODO break out into smaller methods
         # TODO add check to make sure user doesn't already exist - otherwise can't save
 
-        # time.sleep(5)
-        driver.implicitly_wait(10)  # explicit wait wasnt working for single sub btn
+        logger.info("\nClicking Add Single Subscriber button ...\n")
+        try:
+            # time.sleep(5)
+            driver.implicitly_wait(10)  # explicit wait wasnt working for single sub btn
 
-        single_sub_btn = driver.find_element_by_class_name("btn--step--single-sub")
-        single_sub_btn.click()
+            single_sub_btn = driver.find_element_by_class_name("btn--step--single-sub")
+            single_sub_btn.click()
 
-        ########################
-        # enter name and email #
-        ########################
-        # wait(ec.presence_of_all_elements_located)
-        driver.implicitly_wait(10)
-        first_name_element = driver.find_element_by_id("first-name")
-        email_element = driver.find_element_by_id("email")
+            ########################
+            # enter name and email #
+            ########################
+            # wait(ec.presence_of_all_elements_located)
+            driver.implicitly_wait(10)
+            # first_name_element = wait.until(ec.element_located_to_be_selected((By.ID, 'first-name')))  # testing
+            print('\n**located first name elem**\n')
 
-        #####################
-        # add subscriber(s) #
-        #####################
-        # TODO clear existing before sending
-        # currently first user is cached and second is concated;
-        # TestUser1TestUser2
-        # test@aol.comtest2@new.rr.com <--breaks cuz not valid email
-        first_name_element.send_keys(first_name)
-        email_element.send_keys(email)
+            first_name_element = driver.find_element_by_id("first-name")  # orig, broke
+            email_element = driver.find_element_by_id("email")
 
-        # find Sequences dropdown
-        all_em_elems = driver.find_elements_by_tag_name("em")
-        reasonable_opts = []
-        for em_elem in all_em_elems:
-            if "0 of " in em_elem.text:
-                reasonable_opts.append(em_elem)
+            #####################
+            # add subscriber(s) #
+            #####################
+            # TODO clear existing before sending
+            # currently first user is cached and second is concated;
+            # TestUser1TestUser2
+            # test@aol.comtest2@new.rr.com <--breaks cuz not valid email
+            first_name_element.clear()
+            first_name_element.send_keys(first_name)
+            email_element.send_keys(email)
 
-        # click dropdown
-        sequences_dropdown = reasonable_opts[1]  # 0 = Forms; 1 = Sequences; 2 = Tags
-        sequences_dropdown.click()
+            # find Sequences dropdown
+            all_em_elems = driver.find_elements_by_tag_name("em")
+            reasonable_opts = []
+            for em_elem in all_em_elems:
+                if "0 of " in em_elem.text:
+                    reasonable_opts.append(em_elem)
 
-        # click sequence checkbox
-        label_elems = driver.find_elements_by_tag_name("label")
-        for label in label_elems:
-            for seq_name in self.sequences:
-                if seq_name in label.text:
-                    label.click()
-                    break
+            # click dropdown
+            sequences_dropdown = reasonable_opts[1]  # 0 = Forms; 1 = Sequences; 2 = Tags
+            sequences_dropdown.click()
+
+            # click sequence checkbox
+            label_elems = driver.find_elements_by_tag_name("label")
+            for label in label_elems:
+                for seq_name in self.sequences:
+                    if seq_name in label.text:
+                        label.click()
+                        break
+
+        except (NoSuchElementException, TimeoutException) as ne:
+            logger.info(f"\nretrying after {repr(ne)}..\n")
+            time.sleep(2)
+            self._click_add_single_sub_btn_and_proceed(first_name, email)
 
         self.click_save_subscriber_btn()
 
@@ -101,14 +120,13 @@ class ConvertKit:
         foo = ""
 
 
-# if __name__ == "__main__":
-    # new_user_first_name = "Stan3"
-    # new_user_email = "foo@bar.com"
-    #
-    # ck = ConvertKit()
-    # ck.add_single_subscriber(first_name=new_user_first_name, email=new_user_email)
-    #
-    # driver.quit()
+if __name__ == "__main__":
+    sub_info = [{'first_name': 'TestTy1', 'email': 'testty@aol.com'},
+                {'first_name': 'TestTy2', 'email': 'testty2@new.rr.com'}]
+    ck = ConvertKit()
+    ck.add_subscribers(sub_info)
+    time.sleep(10)
+    driver.quit()
 
 """
 NOTES

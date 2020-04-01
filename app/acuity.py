@@ -95,15 +95,14 @@ def process_any_new_users(added_data, removed_data):
             new_user_added = True
             logger.info(f"** processing new user with email '{added_email}'') **")
 
-            ck = ConvertKit()
-
             # find user info #
             for added in added_data:
                 if added["email"] == added_email:
                     subs_info.append({"first_name": added["first_name"],
-                                     "email": added["email"]})
+                                      "email": added["email"]})
 
     if new_user_added:
+        ck = ConvertKit()
         ck.add_subscribers(sub_info=subs_info)
 
     if not new_user_added:
