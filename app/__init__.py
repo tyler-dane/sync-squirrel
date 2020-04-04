@@ -22,8 +22,6 @@ opts = FFOptions()
 opts.binary_location='/Users/ty/bin/chromedriver'
 
 driver = Chrome(executable_path='/Users/ty/bin/chromedriver')
-# driver.implicitly_wait(10)
-# testing
 
 
 wait = WebDriverWait(driver, 10)

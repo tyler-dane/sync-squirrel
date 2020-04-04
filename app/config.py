@@ -26,3 +26,12 @@ class Config:
     ACUITY_USER = util.get_config_value_yaml(CONFIG_DATA, "acuity.username")
     ACUITY_PW = util.get_config_value_yaml(CONFIG_DATA, "acuity.password")
     ARCHIVE_CSV_NAME = "list_users_previous.csv"
+
+    #####################
+    # Less Annoying CRM #
+    #####################
+    LAC_API_USER_CODE = util.get_config_value_yaml(CONFIG_DATA, "less_annoying_crm.api_user_code")
+    LAC_API_TOKEN = util.get_config_value_yaml(CONFIG_DATA, "less_annoying_crm.api_token")
+    LAC_USER = util.get_config_value_yaml(CONFIG_DATA, "less_annoying_crm.username")
+    LAC_PW = util.get_config_value_yaml(CONFIG_DATA, "less_annoying_crm.password")
+    LAC_HIST_USERS_FILE = "lac_historical_users.txt"
