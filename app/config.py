@@ -1,3 +1,5 @@
+import os
+
 from app import util
 
 
@@ -5,9 +7,9 @@ class Config:
     CONFIG_PATH = "/Users/ty/src/github/sync-squirrel/config.dev.yaml"
     CONFIG_DATA = util.get_config_data_yaml(CONFIG_PATH)
 
-    ##########
-    # Chrome #
-    ##########
+    ######
+    # OS #
+    ######
     DOWNLOADS_DIR = "/Users/ty/Downloads"
 
     ##############
@@ -26,6 +28,7 @@ class Config:
     ACUITY_USER = util.get_config_value_yaml(CONFIG_DATA, "acuity.username")
     ACUITY_PW = util.get_config_value_yaml(CONFIG_DATA, "acuity.password")
     ARCHIVE_CSV_NAME = "list_users_previous.csv"
+    ARCHIVE_CSV_PATH = os.path.join(DOWNLOADS_DIR, ARCHIVE_CSV_NAME)
 
     #####################
     # Less Annoying CRM #
@@ -35,3 +38,4 @@ class Config:
     LAC_USER = util.get_config_value_yaml(CONFIG_DATA, "less_annoying_crm.username")
     LAC_PW = util.get_config_value_yaml(CONFIG_DATA, "less_annoying_crm.password")
     LAC_HIST_USERS_FILE = "lac_historical_users.txt"
+    LAC_HIST_CSV_PATH = os.path.join(DOWNLOADS_DIR, LAC_HIST_USERS_FILE)
