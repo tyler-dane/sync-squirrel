@@ -40,4 +40,4 @@ class Config:
 
     LAC_CURR_PATH = os.path.join(DOWNLOADS_DIR, Con.LAC_CURR_FILE)
 
-    LAC_HIST_CSV_PATH = os.path.join(DOWNLOADS_DIR, Con.LAC_HIST_USERS_FILE)
+    LAC_PREV_PATH = os.path.join(DOWNLOADS_DIR, Con.LAC_HIST_USERS_FILE)
