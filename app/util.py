@@ -1,10 +1,21 @@
+import ntpath
 import os
 import sys
 import logging
 from functools import reduce
 from pathlib import Path
 
+from app.constants import Con
+
 logger = logging.getLogger()  # Note: requires project in calling method to have a logger initialized
+
+
+def all_files_under(path, ext=None):
+    """Iterates through all files that are under the given path."""
+    for cur_path, dirnames, filenames in os.walk(path):
+        for filename in filenames:
+            if ext in filename:
+                yield os.path.join(cur_path, filename)
 
 
 def create_logger(log_level, log_file_path):
@@ -152,3 +163,42 @@ def get_logging_level(level):
         logging_level = logging.INFO
 
     return logging_level
+
+
+def get_xls_path(search_dir):
+    curr_xls_files = []
+
+    for file in os.listdir(search_dir):
+        if file.endswith(".xls"):
+            file_path = os.path.join(search_dir, file)
+            curr_xls_files.append(file_path)
+
+    if len(curr_xls_files) > 1:
+        warn = f"More than one .xls file in {search_dir}. Deleting all but newest"
+        logger.warning(warn)
+        newest_xls_path = max(all_files_under(path=search_dir, ext="xls"), key=os.path.getmtime)
+        # newest_xls = ntpath.basename(newest_xls_path)
+        remove_all_but_newest_file_in_dir(search_dir=search_dir, ext="xls")
+        return newest_xls_path
+
+    else:
+        xls_name = curr_xls_files[0]
+        return xls_name
+
+
+def remove_all_but_newest_file_in_dir(search_dir, ext=None):
+    matching_files = []
+    for file in os.listdir(search_dir):
+        if file.endswith(f".{ext}"):
+            file_path = os.path.join(search_dir, file)
+            matching_files.append(file_path)
+
+    if len(matching_files) > 1:
+        logger.info("Deleting all but most recent matching file ...")
+        newest_xls = max(all_files_under(path=search_dir, ext="xls"), key=os.path.getmtime)
+
+        for xls in matching_files:
+            if xls != newest_xls:
+                xls_path = os.path.join(search_dir, xls)
+                print(f"removing {xls_path} ...")
+                os.remove(xls)

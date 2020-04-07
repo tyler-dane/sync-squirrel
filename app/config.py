@@ -1,6 +1,7 @@
 import os
 
 from app import util
+from app.constants import Con
 
 
 class Config:
@@ -10,7 +11,7 @@ class Config:
     ######
     # OS #
     ######
-    DOWNLOADS_DIR = "/Users/ty/Downloads"
+    DOWNLOADS_DIR = util.get_config_value_yaml(CONFIG_DATA, "app.downloads_dir")
 
     ##############
     # ConvertKit #
@@ -27,8 +28,7 @@ class Config:
     ##########
     ACUITY_USER = util.get_config_value_yaml(CONFIG_DATA, "acuity.username")
     ACUITY_PW = util.get_config_value_yaml(CONFIG_DATA, "acuity.password")
-    ARCHIVE_CSV_NAME = "list_users_previous.csv"
-    ARCHIVE_CSV_PATH = os.path.join(DOWNLOADS_DIR, ARCHIVE_CSV_NAME)
+
 
     #####################
     # Less Annoying CRM #
@@ -37,5 +37,7 @@ class Config:
     LAC_API_TOKEN = util.get_config_value_yaml(CONFIG_DATA, "less_annoying_crm.api_token")
     LAC_USER = util.get_config_value_yaml(CONFIG_DATA, "less_annoying_crm.username")
     LAC_PW = util.get_config_value_yaml(CONFIG_DATA, "less_annoying_crm.password")
-    LAC_HIST_USERS_FILE = "lac_historical_users.txt"
-    LAC_HIST_CSV_PATH = os.path.join(DOWNLOADS_DIR, LAC_HIST_USERS_FILE)
+
+    LAC_CURR_PATH = os.path.join(DOWNLOADS_DIR, Con.LAC_CURR_FILE)
+
+    LAC_HIST_CSV_PATH = os.path.join(DOWNLOADS_DIR, Con.LAC_HIST_USERS_FILE)

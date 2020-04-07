@@ -1,8 +1,11 @@
+import os
 import time
 import csv
 import xlrd
+from csv_diff import compare, load_csv
+from xlrd.timemachine import xrange
 
-from app import logger
+from app import logger, util
 from app.config import Config
 from app.convertkit import ConvertKit
 from app.less_annoying_crm.api import Api
@@ -12,13 +15,9 @@ from app.less_annoying_crm.lac_ui import LacUI
 class Lac(Api):
     def __init__(self, timeout=15):
         super().__init__(timeout)
-        self.timeout = timeout
-        self.current_users = self.get_current_contacts()
-        self.previous_users = []
-        # self.previous_users = self.get_historical_contacts()
-        self.new_user_data = []
-        # self.new_user_data = self.get_new_user_data()
         self.lac_ui = LacUI()
+        self.timeout = timeout
+        self.new_user_data = self.get_new_contacts()
 
         self.api_base = f"https://api.lessannoyingcrm.com/?UserCode={Config.LAC_API_USER_CODE}&APIToken={Config.LAC_API_TOKEN}"
 
@@ -34,24 +33,82 @@ class Lac(Api):
     #     # resp = self.get_request(url)
     #     return all_contacts
 
-    def get_current_contacts(self):
+    def get_new_contacts(self):
         self.lac_ui.login()
         time.sleep(4)
         self.lac_ui.export_contacts()
+        time.sleep(5)  # TODO more intelligent way to ensure file finished downloading
+        xls_path = util.get_xls_path(search_dir=Config.DOWNLOADS_DIR)
 
-        self._convert_xls_to_csv()
-        return ""
+        prev_contacts_csv = Config.LAC_HIST_CSV_PATH
+        curr_contacts_csv = self._convert_xls_to_csv(xls_path)
 
-    def _convert_xls_to_csv(self):
-        wb = xlrd.open_workbook('your_workbook.xls')
-        sh = wb.sheet_by_name('Sheet1')
-        your_csv_file = open('your_csv_file.csv', 'wb')
-        wr = csv.writer(your_csv_file, quoting=csv.QUOTE_ALL)
+        added, removed = self._get_added_and_removed_contacts(prev_csv=prev_contacts_csv, curr_csv=curr_contacts_csv)
+
+        ####################
+        # get unique lists #
+        ####################
+        added_emails = []
+        removed_emails = []
+
+        for a in added:
+            added_emails.append(a["email"])
+        for r in removed:
+            removed_emails.append(r["email"])
+
+        ###########
+        # compare #
+        ###########
+        new_user_data = []
+
+        for added_em in added_emails:
+            if added_em not in removed_emails:
+                logger.info(f"** processing new user with email: {added_em}")
+
+                # find user info and save #
+                for a in added:
+                    if a["email"] == added_em:
+                        new_user_data.append({
+                            "first_name": a["first_name"],
+                            "email": a["email"]
+                        })
+
+        return new_user_data
+
+    def _convert_xls_to_csv(self, xls_path):
+
+        wb = xlrd.open_workbook(xls_path)
+        sh = wb.sheet_by_index(0)  # all data in first (and only) sheet as of Mar 2020
+
+        lac_csv = open(Config.LAC_CURR_PATH, 'w')
+        wr = csv.writer(lac_csv, quoting=csv.QUOTE_ALL)
 
         for rownum in xrange(sh.nrows):
             wr.writerow(sh.row_values(rownum))
 
-        your_csv_file.close()
+        lac_csv.close()
+        return Config.LAC_CURR_PATH
+
+    def _get_added_and_removed_contacts(self, prev_csv, curr_csv):
+        compare_out = compare(
+            load_csv(open(prev_csv)),
+            load_csv(open(curr_csv))
+        )
+
+        added_data = []
+        removed_data = []
+
+        for added in compare_out["added"]:
+            if added["First Name"] and added["Primary Email"]:
+                added_data.append({"email": added["Primary Email"],
+                                   "first_name": added["First Name"]})
+
+        for removed in compare_out["removed"]:
+            if removed["First Name"] and removed["Primary Email"]:
+                removed_data.append({"email": removed["Primary Email"],
+                                     "first_name": removed["First Name"]})
+
+        return added_data, removed_data
 
     def get_new_user_data(self):
         new_users_data = []

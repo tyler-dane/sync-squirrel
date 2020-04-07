@@ -7,3 +7,4 @@ config.dev.yaml
 app/__pycache__/
 *.csv
 *.xls
+.DS_Store
