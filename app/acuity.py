@@ -105,6 +105,9 @@ def process_any_new_users(added_data, removed_data):
         ck = ConvertKit()
         ck.add_subscribers(sub_info=subs_info)
 
+        # create new contacts in LAC
+        # add user to LAC group named ‘Acuity Appointment’
+
     if not new_user_added:
         logger.info("No new users")
 
