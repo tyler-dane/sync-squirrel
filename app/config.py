@@ -37,6 +37,7 @@ class Config:
     LAC_API_TOKEN = util.get_config_value_yaml(CONFIG_DATA, "less_annoying_crm.api_token")
     LAC_USER = util.get_config_value_yaml(CONFIG_DATA, "less_annoying_crm.username")
     LAC_PW = util.get_config_value_yaml(CONFIG_DATA, "less_annoying_crm.password")
+    LAC_NEW_USER_GROUP_NAME = util.get_config_value_yaml(CONFIG_DATA, "less_annoying_crm.new_user_group_names")
 
     LAC_CURR_PATH = os.path.join(DOWNLOADS_DIR, Con.LAC_CURR_FILE)
 

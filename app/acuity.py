@@ -6,6 +6,7 @@ from csv_diff import load_csv, compare
 from app import logger, driver, convertkit
 from app.config import Config
 from app.convertkit import ConvertKit
+from app.less_annoying_crm.lac import Lac
 
 
 def login():
@@ -102,42 +103,16 @@ def process_any_new_users(added_data, removed_data):
                                       "email": added["email"]})
 
     if new_user_added:
+        # create new contacts in LAC
+        # add user to LAC group named ‘Acuity Appointment’
+        less_annoying_crm = Lac()
+        less_annoying_crm.process_new_lac_users(user_info=subs_info)
+
         ck = ConvertKit()
         ck.add_subscribers(sub_info=subs_info)
 
-        # create new contacts in LAC
-        # add user to LAC group named ‘Acuity Appointment’
-
     if not new_user_added:
         logger.info("No new users")
-
-
-# TODO delete
-# def get_new_users_data(added_data, removed_data):
-#     new_user_data = []
-#     new_user_data.append({
-#         "email": added["Email"],
-#         "first_name": added["First Name"]
-#     })
-#
-#     # using emails as uids
-#     added_emails = []
-#     removed_emails = []
-#
-#     for added in added_users:
-#         added_emails.append(added["Email"])
-#     for removed in removed_users:
-#         removed_emails.append(removed["Email"])
-#
-#     for added in added_users:
-#         if added["Email"] not in removed_emails:
-#             logger.info(f"** found new user (has email {added['Email']}) **")
-#             new_user_data.append({
-#                 "email": added["Email"],
-#                 "first_name": added["First Name"]
-#             })
-#
-#     return new_user_data
 
 
 def get_new_filename():
