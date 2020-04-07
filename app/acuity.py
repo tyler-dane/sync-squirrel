@@ -100,11 +100,10 @@ def process_any_new_users(added_data, removed_data):
             for added in added_data:
                 if added["email"] == added_email:
                     subs_info.append({"first_name": added["first_name"],
+                                      "last_name": added["last_name"],
                                       "email": added["email"]})
 
     if new_user_added:
-        # create new contacts in LAC
-        # add user to LAC group named ‘Acuity Appointment’
         less_annoying_crm = Lac()
         less_annoying_crm.process_new_lac_users(user_info=subs_info)
 
