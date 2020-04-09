@@ -4,7 +4,11 @@ geckodriver.log
 venv/
 config.dev.yaml
 *.log
-app/__pycache__/
+*__pycache__/
 *.csv
 *.xls
 .DS_Store
+*.pyc
+app/*/*__pycache__
+app/less_annoying_crm/__pycache__/
+*/__pycache__/*

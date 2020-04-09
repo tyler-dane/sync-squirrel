@@ -3,6 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from app import logger, driver, wait, ec, util
 from app.config import Config
+from app.less_annoying_crm.lac import Lac
 
 
 class ConvertKit:
@@ -152,14 +153,60 @@ class ConvertKit:
         driver.find_element_by_xpath(add_sub_save_btn).click()
         logger.info("\tClicked Save button")
 
+    def add_any_new_users_to_lac(self):
+        # TODO Finish
+        curr_users = self.get_current_convertkit_users()
+        prev_users = self.get_previous_convertkit_users()
+
+        if len(curr_users) > len(prev_users):
+            logger.info("New ConvertKit users found. Adding them to Less Annoying CRM ...")
+            new_users = self._get_new_user_data(curr_users=curr_users, prev_users=prev_users)
+
+            less_annoying_crm = Lac()
+            less_annoying_crm.process_new_lac_users(user_info=new_users)
+
+        else:
+            logger.info("No new ConvertKit users")
+
+    def get_current_convertkit_users(self):
+        # TODO
+        curr_users = "api request"
+        return curr_users
+
+    def get_previous_convertkit_users(self):
+        return "read from .json"
+
+    def _get_new_user_data(self, curr_users, prev_users):
+        # TODO
+        new_user_data = []
+        for user in curr_users:
+            if user not in prev_users:
+                # keys match what LAC needs - values match what CK API provides
+                user_id = ""
+                users_ck_channels = self._get_note_about_users_ck_channels(ck_id=user_id)
+
+                user_data = {
+                    "first_name": user["first_name"],
+                    "last_name": "FromConvertKit",
+                    "email": user["email_address"],
+                    "note": users_ck_channels
+                }
+
+        return new_user_data
+
+    def _get_note_about_users_ck_channels(self, ck_id):
+        channels = []
+        resp = f"api request to /v3/subscribers/{ck_id}/tags"
+        for chan in resp:
+            channels.append(chan)
+
+        channels_note = f"This user belongs to these ConvertKit channels: {channels}"
+        return channels_note
+
 
 if __name__ == "__main__":
-    sub_info = [{'first_name': 'TestTy1', 'email': 'testty@aol.com'},
-                {'first_name': 'TestTy2', 'email': 'testty2@new.rr.com'}]
     ck = ConvertKit()
-    ck.add_subscribers(sub_info)
-    time.sleep(10)
-    driver.quit()
+    ck.add_any_new_users_to_lac()
 
 """
 NOTES

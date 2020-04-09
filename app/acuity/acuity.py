@@ -3,9 +3,10 @@ import time
 from datetime import datetime
 from csv_diff import load_csv, compare
 
-from app import logger, driver, convertkit
+from app import logger, driver
 from app.config import Config
-from app.convertkit import ConvertKit
+from app.constants import Con
+from app.convertkit.convertkit import ConvertKit
 from app.less_annoying_crm.lac import Lac
 
 
@@ -30,7 +31,6 @@ def export_all_users_to_csv():
 
 
 def compare_old_and_new_users(parent_dir):
-    # these work together with brock lesner
     # first_path = os.path.join(parent_dir, "list_demo1.csv")
     # second_path = os.path.join(parent_dir, "list_added_one.csv")
 
@@ -38,8 +38,8 @@ def compare_old_and_new_users(parent_dir):
     # get data #
     ############
     time.sleep(5)
-    current_user_data = os.path.join(parent_dir, "list.csv")
-    previous_user_data = os.path.join(parent_dir, "list_previous.csv")
+    current_user_data = os.path.join(parent_dir, Con.ACUITY_CURR_FILE)
+    previous_user_data = os.path.join(parent_dir, Con.ACUITY_HIST_FILE )
 
     compare_out = compare(
         load_csv(open(previous_user_data)),
