@@ -27,7 +27,7 @@ driver = Chrome(executable_path='/Users/ty/bin/chromedriver')
 wait = WebDriverWait(driver, 10)
 fluent_wait = WebDriverWait(driver, timeout=10, poll_frequency=0.2)
 
-util.create_logger("debug", "demo.log")
+util.create_logger("info", "SyncSquirrel.log")
 logger = logging.getLogger()
 
 

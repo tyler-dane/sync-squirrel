@@ -8,7 +8,7 @@ from xlrd.timemachine import xrange
 
 from app import logger, util
 from app.config import Config
-from app.convertkit import ConvertKit
+from app.convertkit.convertkit import ConvertKit
 from app.less_annoying_crm.lac_api import LacApi
 from app.less_annoying_crm.lac_ui import LacUI
 
@@ -109,6 +109,9 @@ class Lac:
         for lac_user in user_info:
             lac_user_id = self._create_new_lac_user(user_data=lac_user)
             self._add_lac_user_to_group(user_id=lac_user_id, group_name=Config.LAC_NEW_USER_GROUP_NAME)
+            if "note" in lac_user:
+                self._add_note_to_lac_user(lac_user_id=lac_user_id, note=lac_user["note"])
+        logger.info("Done processing new LessAnnoying CRM user(s)")
 
     def _create_new_lac_user(self, user_data):
         func = "CreateContact"
@@ -142,6 +145,16 @@ class Lac:
         resp = self.lac_api.get_request(url=url)
         if resp["Success"] is True:
             logger.info(f"Added user with id *{user_id}* to *{group_name}* group")
+
+    def _add_note_to_lac_user(self, lac_user_id, note):
+        func = "CreateNote"
+        params = {
+            "ContactId": lac_user_id,
+            "Note": note
+        }
+        json_params = json.dumps(params)
+        url = f"{self.lac_api.api_base}&Function={func}&Parameters={json_params}"
+        resp = self.lac_api.get_request(url=url)
 
 
 def add_any_new_users_to_convertkit(self):

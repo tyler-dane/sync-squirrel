@@ -3,13 +3,14 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from app import logger, driver, wait, ec, util
 from app.config import Config
-from app.less_annoying_crm.lac import Lac
+from app.convertkit.ck_api import ConvertKitApi
 
 
 class ConvertKit:
     def __init__(self, sequences=Config.CONVERT_SEQ):
         self.sequences = sequences
         self.logged_in = False
+        self.ck_api = ConvertKitApi()
 
     def login(self, username, password):
         logger.info("Logging in ...")
@@ -154,8 +155,11 @@ class ConvertKit:
         logger.info("\tClicked Save button")
 
     def add_any_new_users_to_lac(self):
-        # TODO Finish
+        # TODO fix so don't have to use local import and no circular top imports
+        from app.less_annoying_crm.lac import Lac
+
         curr_users = self.get_current_convertkit_users()
+        # TODO start here - save curr users to hist file if not exists; then get prev_users
         prev_users = self.get_previous_convertkit_users()
 
         if len(curr_users) > len(prev_users):
@@ -170,7 +174,28 @@ class ConvertKit:
 
     def get_current_convertkit_users(self):
         # TODO
-        curr_users = "api request"
+        url = f"{self.ck_api.uri_base}/subscribers?api_secret={self.ck_api.api_secret}"
+        page_1_resp = self.ck_api.get_request(url=url)
+
+        curr_users = page_1_resp["subscribers"]
+
+        if page_1_resp["total_pages"] > 1:
+            curr_page = int(page_1_resp["page"])
+            next_page = curr_page + 1
+            total_pages = page_1_resp["total_pages"]
+
+            while curr_page < total_pages:
+                next_page_url = f"{url}&page={next_page}"
+                next_page_resp = self.ck_api.get_request(next_page_url)
+
+                curr_users.extend(next_page_resp["subscribers"])
+
+                curr_page += 1
+                next_page += 1
+
+        return curr_users
+
+
         return curr_users
 
     def get_previous_convertkit_users(self):
