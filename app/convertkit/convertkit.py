@@ -1,8 +1,11 @@
+import json
+import os
 import time
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from app import logger, driver, wait, ec, util
 from app.config import Config
+from app.constants import Con
 from app.convertkit.ck_api import ConvertKitApi
 
 
@@ -159,21 +162,25 @@ class ConvertKit:
         from app.less_annoying_crm.lac import Lac
 
         curr_users = self.get_current_convertkit_users()
-        # TODO start here - save curr users to hist file if not exists; then get prev_users
-        prev_users = self.get_previous_convertkit_users()
 
-        if len(curr_users) > len(prev_users):
-            logger.info("New ConvertKit users found. Adding them to Less Annoying CRM ...")
-            new_users = self._get_new_user_data(curr_users=curr_users, prev_users=prev_users)
+        if self._prev_users_file_exists():
+            prev_users = self.get_previous_convertkit_users()
 
-            less_annoying_crm = Lac()
-            less_annoying_crm.process_new_lac_users(user_info=new_users)
+            if len(curr_users) > len(prev_users):
+                logger.info("New ConvertKit users found. Adding them to Less Annoying CRM ...")
+                new_users = self._get_new_user_data(curr_users=curr_users, prev_users=prev_users)
 
+                less_annoying_crm = Lac()
+                less_annoying_crm.process_new_lac_users(user_info=new_users)
+
+            else:
+                logger.info("No new ConvertKit users")
         else:
-            logger.info("No new ConvertKit users")
+            logger.info("No previous users file for ConvertKit. Recording current users into historical file for next time")
+            self._save_users_to_prev_users_file(users=curr_users, prev_users_file=Config.CONVERT_PREV_USERS_PATH)
+
 
     def get_current_convertkit_users(self):
-        # TODO
         url = f"{self.ck_api.uri_base}/subscribers?api_secret={self.ck_api.api_secret}"
         page_1_resp = self.ck_api.get_request(url=url)
 
@@ -196,10 +203,26 @@ class ConvertKit:
         return curr_users
 
 
-        return curr_users
+    def _prev_users_file_exists(self):
+        return os.path.isfile(Config.CONVERT_PREV_USERS_PATH)
+
+    def _save_users_to_prev_users_file(self, users, prev_users_file):
+        """
+        overwrites any existing content
+        :param users: json data to save
+        :return:
+        """
+        json_data = json.dumps(users)
+        with open(prev_users_file, "w") as f:
+            f.write(json_data)
 
     def get_previous_convertkit_users(self):
-        return "read from .json"
+        with open(Config.CONVERT_PREV_USERS_PATH, "r") as prev_ck_f:
+            raw_hist_users = prev_ck_f.read()
+
+        hist_users = json.loads(raw_hist_users)
+
+        return hist_users
 
     def _get_new_user_data(self, curr_users, prev_users):
         # TODO
@@ -207,7 +230,7 @@ class ConvertKit:
         for user in curr_users:
             if user not in prev_users:
                 # keys match what LAC needs - values match what CK API provides
-                user_id = ""
+                user_id = user["id"]
                 users_ck_channels = self._get_note_about_users_ck_channels(ck_id=user_id)
 
                 user_data = {
@@ -220,6 +243,7 @@ class ConvertKit:
         return new_user_data
 
     def _get_note_about_users_ck_channels(self, ck_id):
+        # TODO start here
         channels = []
         resp = f"api request to /v3/subscribers/{ck_id}/tags"
         for chan in resp:

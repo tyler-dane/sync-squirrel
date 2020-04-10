@@ -24,6 +24,8 @@ class Config:
     CONVERT_SEQ = []
     CONVERT_SEQ.append(raw_seq)
 
+    CONVERT_PREV_USERS_PATH = os.path.join(DOWNLOADS_DIR, Con.CK_HIST_FILE)
+
     ##########
     # Acuity #
     ##########
