@@ -105,7 +105,7 @@ def process_any_new_users(added_data, removed_data):
 
     if new_user_added:
         less_annoying_crm = Lac()
-        less_annoying_crm.process_new_lac_users(user_info=subs_info)
+        less_annoying_crm.process_new_lac_users(users_info=subs_info)
 
         ck = ConvertKit()
         ck.add_subscribers(sub_info=subs_info)

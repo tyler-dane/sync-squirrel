@@ -102,15 +102,17 @@ class Lac:
 
         return added_data, removed_data
 
-    def process_new_lac_users(self, user_info):
+    def process_new_lac_users(self, users_info):
         """Called by other systems (Acuity, ConvertKit)"""
         logger.info("Adding new user(s) to LessAnnoying CRM ...")
 
-        for lac_user in user_info:
+        for lac_user in users_info:
             lac_user_id = self._create_new_lac_user(user_data=lac_user)
             self._add_lac_user_to_group(user_id=lac_user_id, group_name=Config.LAC_NEW_USER_GROUP_NAME)
             if lac_user["note"]:
                 self._add_note_to_lac_user(lac_user_id=lac_user_id, note=lac_user["note"])
+            else:
+                logger.warning("No note provided for user")
         logger.info("Done processing new LessAnnoying CRM user(s)")
 
     def _create_new_lac_user(self, user_data):
@@ -127,14 +129,14 @@ class Lac:
         json_params = json.dumps(params)
         url = f"{self.lac_api.api_base}&Function={func}&Parameters={json_params}"
         resp = self.lac_api.get_request(url=url)
-        if resp["ContactId"]:
+        if resp["Success"]:
             user_id = resp["ContactId"]
             return user_id
         else:
             logger.error(f"Failed to add user with this data to LAC:\n\t{user_data}")
 
     def _add_lac_user_to_group(self, user_id, group_name):
-        logger.info(f"Adding user to *{group_name}* group ...")
+        logger.info(f"Adding user with id *{user_id}* to *{group_name}* group ...")
         func = "AddContactToGroup"
         params = {
             "ContactId": user_id,
@@ -145,6 +147,8 @@ class Lac:
         resp = self.lac_api.get_request(url=url)
         if resp["Success"] is True:
             logger.info(f"Added user with id *{user_id}* to *{group_name}* group")
+        else:
+            logger.error("Problem adding LAC user to group")
 
     def _add_note_to_lac_user(self, lac_user_id, note):
         func = "CreateNote"
@@ -155,6 +159,11 @@ class Lac:
         json_params = json.dumps(params)
         url = f"{self.lac_api.api_base}&Function={func}&Parameters={json_params}"
         resp = self.lac_api.get_request(url=url)
+
+        if resp["Success"]:
+            logger.info("Successfully added note to LAC user")
+        else:
+            logger.error("Problem adding note to user")
 
 
 def add_any_new_users_to_convertkit(self):
@@ -199,5 +208,5 @@ if __name__ == "__main__":
          }
     ]
 
-    less.process_new_lac_users(user_info=new_user_info)
+    less.process_new_lac_users(users_info=new_user_info)
     # less.add_any_new_users_to_convertkit()
