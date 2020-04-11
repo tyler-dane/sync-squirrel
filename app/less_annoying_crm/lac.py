@@ -109,7 +109,7 @@ class Lac:
         for lac_user in user_info:
             lac_user_id = self._create_new_lac_user(user_data=lac_user)
             self._add_lac_user_to_group(user_id=lac_user_id, group_name=Config.LAC_NEW_USER_GROUP_NAME)
-            if "note" in lac_user:
+            if lac_user["note"]:
                 self._add_note_to_lac_user(lac_user_id=lac_user_id, note=lac_user["note"])
         logger.info("Done processing new LessAnnoying CRM user(s)")
 

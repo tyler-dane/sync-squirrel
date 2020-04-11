@@ -6,7 +6,7 @@ import json
 class Api:
     def __init__(self, uri_base, timeout=15):
         self.timeout = timeout
-        self.uri_base = uri_base
+        self.base = uri_base
 
     def get_request(self, url):
         response = requests.request("GET", url)
