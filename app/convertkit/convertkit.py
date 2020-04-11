@@ -1,14 +1,18 @@
+import json
+import os
 import time
-from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from app import logger, driver, wait, ec, util
 from app.config import Config
+from app.convertkit.ck_api import ConvertKitApi
+from app.convertkit.metadata import CkMetadata
 
 
 class ConvertKit:
     def __init__(self, sequences=Config.CONVERT_SEQ):
         self.sequences = sequences
         self.logged_in = False
+        self.ck_api = ConvertKitApi()
 
     def login(self, username, password):
         logger.info("Logging in ...")
@@ -152,43 +156,95 @@ class ConvertKit:
         driver.find_element_by_xpath(add_sub_save_btn).click()
         logger.info("\tClicked Save button")
 
+    def add_any_new_users_to_lac(self):
+        # TODO fix so don't have to use local import and no circular top imports
+        from app.less_annoying_crm.lac import Lac
+
+        curr_users = self.get_current_convertkit_users()
+
+        if self._prev_users_file_exists():
+            prev_users = self.get_previous_convertkit_users()
+
+            if len(curr_users) > len(prev_users):
+                logger.info("New ConvertKit users found. Adding them to Less Annoying CRM ...")
+                new_users = self._get_new_users_data(curr_users=curr_users, prev_users=prev_users)
+
+                less_annoying_crm = Lac()
+                less_annoying_crm.process_new_lac_users(users_info=new_users)
+
+            else:
+                logger.info("No new ConvertKit users")
+        else:
+            logger.info(
+                "No previous users file for ConvertKit. Recording current users into historical file for next time")
+            self._save_users_to_prev_users_file(users=curr_users, prev_users_file=Config.CONVERT_PREV_USERS_PATH)
+
+    def get_current_convertkit_users(self):
+        url = f"{self.ck_api.base}/subscribers?api_secret={self.ck_api.secret}"
+        page_1_resp = self.ck_api.get_request(url=url)
+
+        curr_users = page_1_resp["subscribers"]
+
+        if page_1_resp["total_pages"] > 1:
+            curr_page = int(page_1_resp["page"])
+            next_page = curr_page + 1
+            total_pages = page_1_resp["total_pages"]
+
+            while curr_page < total_pages:
+                next_page_url = f"{url}&page={next_page}"
+                next_page_resp = self.ck_api.get_request(next_page_url)
+
+                curr_users.extend(next_page_resp["subscribers"])
+
+                curr_page += 1
+                next_page += 1
+
+        return curr_users
+
+    def _prev_users_file_exists(self):
+        return os.path.isfile(Config.CONVERT_PREV_USERS_PATH)
+
+    def _save_users_to_prev_users_file(self, users, prev_users_file):
+        """
+        overwrites any existing content
+        :param users: json data to save
+        :return:
+        """
+        json_data = json.dumps(users)
+        with open(prev_users_file, "w") as f:
+            f.write(json_data)
+
+    def get_previous_convertkit_users(self):
+        with open(Config.CONVERT_PREV_USERS_PATH, "r") as prev_ck_f:
+            raw_hist_users = prev_ck_f.read()
+
+        hist_users = json.loads(raw_hist_users)
+
+        return hist_users
+
+    def _get_new_users_data(self, curr_users, prev_users):
+        new_user_data = []
+
+        m = CkMetadata()
+
+        for user in curr_users:
+            if user not in prev_users:
+                # keys match what LAC needs - values match what CK API provides
+                user_id = user["id"]
+                metadata_note = m.get_user_metadata_note(
+                    ck_id=user_id, ck_email=user["email_address"])
+
+                user_data = {
+                    "first_name": user["first_name"],
+                    "last_name": "FromConvertKit",
+                    "email": user["email_address"],
+                    "note": metadata_note
+                }
+                new_user_data.append(user_data)
+
+        return new_user_data
+
 
 if __name__ == "__main__":
-    sub_info = [{'first_name': 'TestTy1', 'email': 'testty@aol.com'},
-                {'first_name': 'TestTy2', 'email': 'testty2@new.rr.com'}]
     ck = ConvertKit()
-    ck.add_subscribers(sub_info)
-    time.sleep(10)
-    driver.quit()
-
-"""
-NOTES
-
-# THESE WORK
-    # sub_demo_works = wait.until(ec.element_to_be_clickable((By.ID, "subscribers-select-all")))
-    # search_btn = driver.find_element_by_xpath("/html/body/div[1]/div/div[2]/div/section/div/section[1]/form/input[4]").click()
-
-    # TESTING THESE
-    # add_sub_btn = wait.until(ec.element_to_be_clickable((By.ID, "addSubscribersButton")))
-    # add_sub_btn = wait.until(ec.visibility_of_element_located((By.ID, "addSubscribersButton")))
-    # wait.until(ec.presence_of_all_elements_located)
-    # add_sub_btn = wait.until(ec.visibility_of_element_located((By.XPATH, "//*[@id='addSubscribersButton']")))
-    # add_sub_btn.click()
-
-
----- selecting subs
-all_as_test = util.get_all_text_from_html_tag("a")
-        all_is_test = util.get_all_text_from_html_tag("i")
-        all_a_elems = driver.find_elements_by_tag_name("a")
-        for a_elem in all_a_elems:
-            if "single subscriber" in a_elem.text:
-                a_elem.click()
-
-# span_elem = driver.find_elements_by_tag_name("span")
-        # span_text = []
-        # for span in span_elem:
-        #     span_text.append(span.text)
-        # label_elems = driver.find_elements_by_tag_name("label")
-
-
-"""
+    ck.add_any_new_users_to_lac()
