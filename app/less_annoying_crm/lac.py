@@ -66,7 +66,6 @@ class Lac:
                         })
 
         self.new_user_data = new_user_data
-        return new_user_data
 
     def _convert_xls_to_csv(self, xls_path):
 
@@ -103,13 +102,19 @@ class Lac:
 
         return added_data, removed_data
 
-    def process_new_lac_users(self, users_info):
-        """Called by other systems (Acuity, ConvertKit)"""
+    def create_new_lac_user(self, users_info):
+        """
+        Called by other systems (Acuity, ConvertKit)
+
+        Uses LessAnnoying CRM API to create new users (with group & note)
+
+        """
         logger.info("Adding new user(s) to LessAnnoying CRM ...")
 
         for lac_user in users_info:
             lac_user_id = self._create_new_lac_user(user_data=lac_user)
             self._add_lac_user_to_group(user_id=lac_user_id, group_name=Config.LAC_NEW_USER_GROUP_NAME)
+
             if lac_user["note"]:
                 self._add_note_to_lac_user(lac_user_id=lac_user_id, note=lac_user["note"])
             else:
@@ -119,6 +124,7 @@ class Lac:
         logger.info("Done processing new LessAnnoying CRM user(s)")
 
     def _create_new_lac_user(self, user_data):
+        logger.info(f"Creating LAC user (has email *{user_data['email']}*) ...")
         func = "CreateContact"
         params = {
             "FirstName": user_data["first_name"],
@@ -139,7 +145,7 @@ class Lac:
             logger.error(f"Failed to add user with this data to LAC:\n\t{user_data}")
 
     def _add_lac_user_to_group(self, user_id, group_name):
-        logger.info(f"Adding user with id *{user_id}* to *{group_name}* group ...")
+        logger.info(f"Adding LAC user with id *{user_id}* to *{group_name}* group ...")
         func = "AddContactToGroup"
         params = {
             "ContactId": user_id,
@@ -154,6 +160,8 @@ class Lac:
             logger.error("Problem adding LAC user to group")
 
     def _add_note_to_lac_user(self, lac_user_id, note):
+        logger.info("Adding note to LAC user ...")
+
         func = "CreateNote"
         params = {
             "ContactId": lac_user_id,
@@ -170,6 +178,7 @@ class Lac:
 
     def add_any_new_users_to_convertkit(self):
         self.get_any_new_lac_users()
+
         if self.new_user_data:
             logger.info("New LAC users found. Adding to convertkit...")
             self._add_new_users_to_convertkit()

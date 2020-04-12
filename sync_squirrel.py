@@ -5,36 +5,24 @@ from app import driver
 
 
 def run():
-    logger.info("Syncing all the things ...")
+    logger.info("\nSyncing all the things ...")
 
-    ################
-    # check acuity #
-    ################
+    #####################################
+    # sync new user in {SYSTEM1} to {system2}
+    #####################################
+
+    # ACUITY --> convertkit
+    # ACUITY --> less annoying crm
     acuity = Acuity()
     acuity.process_any_new_acuity_users()
 
-    ####################
-    # check convertkit #
-    ####################
+    # TODO start here
+    # CONVERTKIT --> less annoying crm
     ck = ConvertKit()
     ck.add_any_new_users_to_lac()
 
-    ###########################
-    # check less annoying crm #
-    ###########################
+    # LESS ANNOYING CRM --> convertkit
     less = Lac()
-    new_user_info = [
-        {"first_name": "spam",
-         "last_name": "AAAEggs",
-         "email": "spamandeggs@fake.com"
-         },
-        {"first_name": "potato",
-         "last_name": "AAAPotatoMan",
-         "email": "potato@fake.com"
-         }
-    ]
-    less.process_new_lac_users(users_info=new_user_info)  # TODO fix this
-
     less.add_any_new_users_to_convertkit()
 
 

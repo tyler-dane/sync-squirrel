@@ -174,7 +174,7 @@ class ConvertKit:
                 new_users = self._get_new_users_data(curr_users=curr_users, prev_users=prev_users)
 
                 less_annoying_crm = Lac()
-                less_annoying_crm.process_new_lac_users(users_info=new_users)
+                less_annoying_crm.create_new_lac_user(users_info=new_users)
 
             else:
                 logger.info("No new ConvertKit users")
