@@ -21,7 +21,7 @@ class LacUI:
         pw_elem.send_keys(Config.LAC_PW)
         login_btn_elem.click()
 
-    def export_contacts(self):
+    def export_current_contacts(self):
         wait.until(ec.visibility_of_all_elements_located)
 
         # the export btn is on this page

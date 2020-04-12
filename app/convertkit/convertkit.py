@@ -27,10 +27,10 @@ class ConvertKit:
         submit_btn = "/html/body/div[1]/div/div[2]/div[2]/div/div/div[2]/form/button"
         driver.find_element_by_xpath(submit_btn).click()
 
-    def add_subscribers(self, sub_info):
+    def add_users_to_ck(self, users_info):
         logged_in = False
 
-        for sub in sub_info:
+        for sub in users_info:
             if logged_in is False:
                 self.login(username=Config.CONVERT_USER, password=Config.CONVERT_PW)
                 logged_in = True
@@ -56,6 +56,10 @@ class ConvertKit:
                 print("sleeping before quitting ...")
                 time.sleep(10)
                 driver.quit()
+
+        # keep hist users file up-to-date
+        curr_users = self.get_current_convertkit_users()
+        self._save_users_to_prev_users_file(users=curr_users)
 
     def _click_add_subs_home_btn(self):
         logger.info("\nclicking Add Subscribers button ...\n")
@@ -177,7 +181,7 @@ class ConvertKit:
         else:
             logger.info(
                 "No previous users file for ConvertKit. Recording current users into historical file for next time")
-            self._save_users_to_prev_users_file(users=curr_users, prev_users_file=Config.CONVERT_PREV_USERS_PATH)
+            self._save_users_to_prev_users_file(users=curr_users)
 
     def get_current_convertkit_users(self):
         url = f"{self.ck_api.base}/subscribers?api_secret={self.ck_api.secret}"
@@ -204,14 +208,14 @@ class ConvertKit:
     def _prev_users_file_exists(self):
         return os.path.isfile(Config.CONVERT_PREV_USERS_PATH)
 
-    def _save_users_to_prev_users_file(self, users, prev_users_file):
+    def _save_users_to_prev_users_file(self, users):
         """
         overwrites any existing content
         :param users: json data to save
         :return:
         """
         json_data = json.dumps(users)
-        with open(prev_users_file, "w") as f:
+        with open(Config.CONVERT_PREV_USERS_PATH, "w") as f:
             f.write(json_data)
 
     def get_previous_convertkit_users(self):
@@ -245,6 +249,6 @@ class ConvertKit:
         return new_user_data
 
 
-if __name__ == "__main__":
-    ck = ConvertKit()
-    ck.add_any_new_users_to_lac()
+# if __name__ == "__main__":
+#     ck = ConvertKit()
+#     ck.add_any_new_users_to_lac()

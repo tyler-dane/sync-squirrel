@@ -26,8 +26,9 @@ class Lac:
         ###################
         self.lac_ui.login()
         time.sleep(4)
-        self.lac_ui.export_contacts()
+        self.lac_ui.export_current_contacts()
         time.sleep(5)  # TODO more intelligent way to ensure file finished downloading
+
         xls_path = util.get_xls_path(search_dir=Config.DOWNLOADS_DIR)
 
         prev_contacts_csv = Config.LAC_PREV_PATH
@@ -113,6 +114,8 @@ class Lac:
                 self._add_note_to_lac_user(lac_user_id=lac_user_id, note=lac_user["note"])
             else:
                 logger.warning("No note provided for user")
+
+        # TODO update prev_lac file (after converting to JSON
         logger.info("Done processing new LessAnnoying CRM user(s)")
 
     def _create_new_lac_user(self, user_data):
@@ -165,48 +168,43 @@ class Lac:
         else:
             logger.error("Problem adding note to user")
 
+    def add_any_new_users_to_convertkit(self):
+        self.get_any_new_lac_users()
+        if self.new_user_data:
+            logger.info("New LAC users found. Adding to convertkit...")
+            self._add_new_users_to_convertkit()
+        else:
+            logger.info("No new LAC users since last time")
 
-def add_any_new_users_to_convertkit(self):
-    self.get_any_new_lac_users()
-    if self.new_user_data:
-        logger.info("New LAC users found. Adding to convertkit...")
-        self._add_new_users_to_convertkit()
-    else:
-        logger.info("No new LAC users since last time")
+    def _add_new_users_to_convertkit(self):
+        new_subs_info = []
+        for new_lac_user in self.new_user_data:
+            new_sub_data = {
+                "first_name": new_lac_user["first_name"],
+                "email": new_lac_user["email"]
+            }
+            new_subs_info.append(new_sub_data)
 
+        ck = ConvertKit()
+        ck.add_users_to_ck(new_subs_info)
 
-def _add_new_users_to_convertkit(self):
-    new_subs_info = []
-    for new_lac_user in self.new_user_data:
-        new_sub_data = {
-            "first_name": new_lac_user["first_name"],
-            "email": new_lac_user["email"]
-        }
-        new_subs_info.append(new_sub_data)
+    def archive_downloaded_csv(self):
+        logger.info("Archiving (renaming) LAC users ...")
+        os.rename(src=Config.LAC_CURR_PATH, dst=Config.LAC_PREV_PATH)
 
-    ck = ConvertKit()
-    ck.add_subscribers(new_subs_info)
-
-
-def archive_downloaded_csv(self):
-    logger.info("Archiving (renaming) LAC users ...")
-    os.rename(src=Config.LAC_CURR_PATH, dst=Config.LAC_PREV_PATH)
-
-
-if __name__ == "__main__":
-    # this main for testing and demos only
-    less = Lac()
-
-    new_user_info = [
-        {"first_name": "spam",
-         "last_name": "AAAEggs",
-         "email": "spamandeggs@fake.com"
-         },
-        {"first_name": "potato",
-         "last_name": "AAAPotatoMan",
-         "email": "potato@fake.com"
-         }
-    ]
-
-    less.process_new_lac_users(users_info=new_user_info)
-    # less.add_any_new_users_to_convertkit()
+# if __name__ == "__main__":
+#     less = Lac()
+#
+#     new_user_info = [
+#         {"first_name": "spam",
+#          "last_name": "AAAEggs",
+#          "email": "spamandeggs@fake.com"
+#          },
+#         {"first_name": "potato",
+#          "last_name": "AAAPotatoMan",
+#          "email": "potato@fake.com"
+#          }
+#     ]
+#
+#     less.process_new_lac_users(users_info=new_user_info)
+#     # less.add_any_new_users_to_convertkit()
