@@ -1,4 +1,3 @@
-import json
 import os
 import time
 import csv
@@ -8,7 +7,8 @@ from xlrd.timemachine import xrange
 
 from app import logger, util
 from app.config import Config
-from app.convertkit.convertkit import ConvertKit
+from app.convertkit.ck_api import ConvertKitApi
+from app.convertkit.ck_ui import ConvertKitUi
 from app.less_annoying_crm.lac_api import LacApi
 from app.less_annoying_crm.lac_ui import LacUI
 
@@ -17,7 +17,8 @@ class Lac:
     def __init__(self, timeout=15):
         self.lac_ui = LacUI()
         self.lac_api = LacApi()
-        self.ck = ConvertKit()
+        self.ck_ui = ConvertKitUi()
+        self.ck_api = ConvertKitApi()
         self.timeout = timeout
         self.new_user_data = []  # to be added once needed
 
@@ -61,7 +62,7 @@ class Lac:
 
         for added_em in added_emails:
             if added_em not in removed_emails:
-                logger.info(f"** processing new user with email: {added_em}")
+                logger.info(f"New LAC user found ({added_em}). Saving user data ...")
 
                 # find user info and save #
                 for a in added:
@@ -70,6 +71,9 @@ class Lac:
                             "first_name": a["first_name"],
                             "email": a["email"]
                         })
+
+        if not new_user_data:
+            logger.info("No new LAC users found")
 
         self.new_user_data = new_user_data
 
@@ -131,29 +135,28 @@ class Lac:
 
     def add_any_new_users_to_convertkit(self):
         logger.info("""
-        *******************************
-        Syncing
-            Less Annoying CRM --> ConvertKit
+        \n*******************************
+        Syncing Less Annoying CRM --> ConvertKit
         *******************************
         """)
 
         self.get_any_new_lac_users()
 
         if self.new_user_data:
-            logger.info("New LAC users found. Checking if they already exist in ConvertKit...")
+            logger.info("Checking if new LAC users already exist in ConvertKit...")
 
             for new_lac_user in self.new_user_data:
-                if not self.ck.user_exists(user=new_lac_user):
-                    new_sub = {
-                        "first_name": new_lac_user["first_name"],
-                        "email": new_lac_user["email"]
-                    }
+                if not self.ck_api.user_exists(user_email=new_lac_user["email"]):
+                    new_sub = [
+                        {
+                            "first_name": new_lac_user["first_name"],
+                            "email": new_lac_user["email"]
+                        }
+                    ]
                     self._add_new_user_to_convertkit(ck_sub_info=new_sub)
-        else:
-            logger.info("No new LAC users since last time")
 
     def _add_new_user_to_convertkit(self, ck_sub_info):
-        self.ck.add_users_to_ck(ck_sub_info)
+        self.ck_ui.add_users_to_ck(ck_sub_info)
 
     def archive_downloaded_csv(self):
         logger.info("Archiving (renaming) LAC users ...")

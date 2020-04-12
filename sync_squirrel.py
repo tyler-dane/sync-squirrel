@@ -5,7 +5,11 @@ from app import driver
 
 
 def run():
-    logger.info("\nSyncing all the things ...")
+    logger.info("""\n
+    --------------------------
+    Syncing all the things ...
+    --------------------------
+    """)
 
     #####################################
     # sync new user in {SYSTEM1} to {system2}

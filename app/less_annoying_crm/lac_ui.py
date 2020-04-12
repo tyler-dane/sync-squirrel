@@ -40,9 +40,9 @@ class LacUI:
                     actions.click()
                     actions.perform()
 
-                    logger.info("\n*** clicking export ... ***\n")
+                    logger.info("Clicking export button ...")
                     a.click()
                     time.sleep(15)
-                logger.info(f"Exported contacts")
+            logger.info(f"Exported contacts")
         except ElementClickInterceptedException:
             pass

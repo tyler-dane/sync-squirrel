@@ -1,5 +1,5 @@
 from app import logger
-from app.convertkit.convertkit import ConvertKit
+from app.convertkit.ck_ui import ConvertKitUi
 from app.less_annoying_crm.lac import Lac
 from app.acuity import util
 
@@ -59,8 +59,8 @@ class Acuity:
 
         if self.new_acuity_user:
             logger.info(f"Adding {len(subs_info)} new Acuity user(s) to CK ...")
-            ck = ConvertKit()
-            ck.add_users_to_ck(users_info=subs_info)
+            ck_ui = ConvertKitUi()
+            ck_ui.add_users_to_ck(users_info=subs_info)
 
             less_annoying_crm = Lac()
             less_annoying_crm.create_new_lac_user(users_info=subs_info)
