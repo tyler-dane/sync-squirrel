@@ -18,18 +18,55 @@ class LacApi:
             resp_json = json.loads(response.content)
             return resp_json
 
+    def create_new_user(self, user_data):
+        logger.info(f"Creating LAC user (has email *{user_data['email']}*) ...")
+        func = "CreateContact"
+        params = {
+            "FirstName": user_data["first_name"],
+            "LastName": user_data["last_name"],
+            "Email": [
+                {
+                    "Text": user_data["email"], "Type": "Work"
+                }
+            ]
+        }
+        json_params = json.dumps(params)
+        url = f"{self.api_base}&Function={func}&Parameters={json_params}"
+        resp = self.get_request(url=url)
+        if resp["Success"]:
+            user_id = resp["ContactId"]
+            return user_id
+        else:
+            logger.error(f"Failed to add user with this data to LAC:\n\t{user_data}")
 
-"""
+    def add_user_to_group(self, user_id, group_name):
+        logger.info(f"Adding LAC user with id *{user_id}* to *{group_name}* group ...")
+        func = "AddContactToGroup"
+        params = {
+            "ContactId": user_id,
+            "GroupName": group_name
+        }
+        json_params = json.dumps(params)
+        url = f"{self.api_base}&Function={func}&Parameters={json_params}"
+        resp = self.get_request(url=url)
+        if resp["Success"] is True:
+            logger.info(f"Added user with id *{user_id}* to *{group_name}* group")
+        else:
+            logger.error("Problem adding LAC user to group")
 
+    def add_note_to_user(self, lac_user_id, note):
+        logger.info("Adding note to LAC user ...")
 
-payload = {}
-headers = {
-  'Cookie': 'Session_LACRM=1tm1h6dtha8h779250lrnotq51'
-}
+        func = "CreateNote"
+        params = {
+            "ContactId": lac_user_id,
+            "Note": note
+        }
+        json_params = json.dumps(params)
+        url = f"{self.api_base}&Function={func}&Parameters={json_params}"
+        resp = self.get_request(url=url)
 
-response = requests.request("GET", url, headers=headers, data = payload)
-
-print(response.text.encode('utf8'))
-
-
-"""
+        if resp["Success"]:
+            logger.info("Successfully added note to LAC user")
+        else:
+            logger.error("Problem adding note to user")

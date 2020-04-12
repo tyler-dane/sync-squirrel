@@ -16,8 +16,8 @@ def run():
     acuity = Acuity()
     acuity.process_any_new_acuity_users()
 
-    # TODO start here
     # CONVERTKIT --> less annoying crm
+    # TODO start here
     ck = ConvertKit()
     ck.add_any_new_users_to_lac()
 

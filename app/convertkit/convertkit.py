@@ -161,6 +161,13 @@ class ConvertKit:
         logger.info("\tClicked Save button")
 
     def add_any_new_users_to_lac(self):
+        logger.info("""
+        *******************************
+        Syncing
+            ConvertKit --> Less Annoying CRM
+        *******************************
+        """)
+
         # TODO fix so don't have to use local import and no circular top imports
         from app.less_annoying_crm.lac import Lac
 
