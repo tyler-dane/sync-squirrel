@@ -17,7 +17,6 @@ class Acuity:
         *******************************
         """)
 
-
         util.login_to_acuity()
         util.export_acuity_users_to_csv()
         added_data, removed_data = util.compare_prev_and_curr_acuity_users()
@@ -36,7 +35,7 @@ class Acuity:
         ###########
         # compare #
         ###########
-        subs_info = []
+        new_users = []
         for added_email in added_emails:
             if added_email not in removed_emails:
                 ####################
@@ -48,7 +47,7 @@ class Acuity:
                 # find user info #
                 for added in added_data:
                     if added["email"] == added_email:
-                        subs_info.append(
+                        new_users.append(
                             {
                                 "first_name": added["first_name"],
                                 "last_name": added["last_name"],
@@ -58,12 +57,12 @@ class Acuity:
                         )
 
         if self.new_acuity_user:
-            logger.info(f"Adding {len(subs_info)} new Acuity user(s) to CK ...")
+            logger.info(f"Adding {len(new_users)} new Acuity user(s) to CK (if they don't already exist)...")
             ck_ui = ConvertKitUi()
-            ck_ui.add_users_to_ck(users_info=subs_info)
+            ck_ui.add_users_to_ck(users_info=new_users)
 
             less_annoying_crm = Lac()
-            less_annoying_crm.create_new_lac_user(users_info=subs_info)
+            less_annoying_crm.create_new_lac_user(users_info=new_users)
 
         else:
             logger.info("No new Acuity users")

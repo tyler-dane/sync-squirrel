@@ -1,4 +1,5 @@
 from app.api import Api
+from app import logger
 from app.config import Config
 
 
@@ -9,6 +10,8 @@ class ConvertKitApi(Api):
         self.end = f"api_secret={self.secret}"
 
     def get_current_convertkit_users(self):
+        logger.info("Getting current ConvertKit users ...")
+
         url = f"{self.base}/subscribers?api_secret={self.secret}"
         page_1_resp = self.get_request(url=url)
 
@@ -35,6 +38,8 @@ class ConvertKitApi(Api):
 
         for user in curr_users:
             if user["email_address"] == user_email:
+                logger.info(f"{user_email} already exists in ConvertKit")
                 return True
 
+        logger.info(f"{user_email} does not already exist in ConvertKit")
         return False

@@ -7,24 +7,17 @@ import time
 import os
 
 
-def login_to_acuity():
-    logger.info("Logging in to acuity ...")
-    driver.get("https://secure.acuityscheduling.com/login.php")
-
-    username_elem = driver.find_element_by_class_name("input-email")
-    password_elem = driver.find_element_by_class_name("input-password")
-
-    username_elem.send_keys(Config.ACUITY_USER)
-    password_elem.send_keys(Config.ACUITY_PW)
-
-    submit_btn = driver.find_element_by_class_name("input-login")
-    submit_btn.click()
-
-
-def export_acuity_users_to_csv():
-    logger.info("Exporting client data ...")
-    export_url = "https://secure.acuityscheduling.com/clients.php?action=bulk&op=exportExcelAll"
-    driver.get(export_url)
+def archive_current_acuity_csv():
+    """
+    ensures that the list.csv is renamed (so no save issues next time)
+    ensures that hist file is correctly named, so can read next time
+    :return:
+    """
+    logger.info("Archiving Acuity users csv ...")
+    try:
+        os.rename(Config.ACUITY_CURR_FILE_PATH, Config.ACUITY_HIST_FILE_PATH)
+    except FileNotFoundError as fe:
+        logger.warning(f"Could not find file, so skipping.\n{fe}")
 
 
 def compare_prev_and_curr_acuity_users():
@@ -47,6 +40,12 @@ def compare_prev_and_curr_acuity_users():
 
     added_data, removed_data = get_added_and_removed_data(compare_out)
     return added_data, removed_data
+
+
+def export_acuity_users_to_csv():
+    logger.info("Exporting client data ...")
+    export_url = "https://secure.acuityscheduling.com/clients.php?action=bulk&op=exportExcelAll"
+    driver.get(export_url)
 
 
 def get_added_and_removed_data(compare_out):
@@ -91,14 +90,15 @@ def get_new_filename():
     return True
 
 
-def archive_current_acuity_csv():
-    """
-    ensures that the list.csv is renamed (so no save issues next time)
-    ensures that hist file is correctly named, so can read next time
-    :return:
-    """
-    logger.info("archiving Acuity users csv ...")
-    try:
-        os.rename(Config.ACUITY_CURR_FILE_PATH, Config.ACUITY_HIST_FILE_PATH)
-    except FileNotFoundError as fe:
-        logger.warning(f"Could not find file, so skipping.\n{fe}")
+def login_to_acuity():
+    logger.info("Logging in to acuity ...")
+    driver.get("https://secure.acuityscheduling.com/login.php")
+
+    username_elem = driver.find_element_by_class_name("input-email")
+    password_elem = driver.find_element_by_class_name("input-password")
+
+    username_elem.send_keys(Config.ACUITY_USER)
+    password_elem.send_keys(Config.ACUITY_PW)
+
+    submit_btn = driver.find_element_by_class_name("input-login")
+    submit_btn.click()

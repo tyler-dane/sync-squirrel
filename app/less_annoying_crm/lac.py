@@ -121,42 +121,42 @@ class Lac:
         """
         logger.info("Adding new user(s) to LessAnnoying CRM ...")
 
-        for lac_user in users_info:
-            lac_user_id = self.lac_api.create_new_user(user_data=lac_user)
-            self.lac_api.add_user_to_group(user_id=lac_user_id, group_name=Config.LAC_NEW_USER_GROUP_NAME)
+        for user in users_info:
+            if not self.lac_api.user_exists(email=user["email"]):
+                lac_user_id = self.lac_api.create_new_user(user_data=user)
+                self.lac_api.add_user_to_group(user_id=lac_user_id, group_name=Config.LAC_NEW_USER_GROUP_NAME)
 
-            if lac_user["note"]:
-                self.lac_api.add_note_to_user(lac_user_id=lac_user_id, note=lac_user["note"])
-            else:
-                logger.warning("No note provided for user")
+                if user["note"]:
+                    self.lac_api.add_note_to_user(lac_user_id=lac_user_id, note=user["note"])
+                else:
+                    logger.warning("No note provided for user")
 
         # TODO update prev_lac file (after converting to JSON
-        logger.info("Done processing new LessAnnoying CRM user(s)")
 
     def add_any_new_users_to_convertkit(self):
         logger.info("""
-        \n*******************************
-        Syncing Less Annoying CRM --> ConvertKit
+        *******************************
+        Syncing 
+            Less Annoying CRM --> ConvertKit
         *******************************
         """)
 
+        logger.info("Checking if any new LAC users ...")
         self.get_any_new_lac_users()
 
         if self.new_user_data:
-            logger.info("Checking if new LAC users already exist in ConvertKit...")
+            logger.info("New LAC users found. Checking if new LAC users already exist in ConvertKit...")
 
+            new_ck_users = []
             for new_lac_user in self.new_user_data:
-                if not self.ck_api.user_exists(user_email=new_lac_user["email"]):
-                    new_sub = [
-                        {
-                            "first_name": new_lac_user["first_name"],
-                            "email": new_lac_user["email"]
-                        }
-                    ]
-                    self._add_new_user_to_convertkit(ck_sub_info=new_sub)
+                user = {
+                    "first_name": new_lac_user["first_name"],
+                    "email": new_lac_user["email"]
+                }
+                new_ck_users.append(user)
 
-    def _add_new_user_to_convertkit(self, ck_sub_info):
-        self.ck_ui.add_users_to_ck(ck_sub_info)
+            self.ck_ui.add_users_to_ck(users_info=new_ck_users)
+
 
     def archive_downloaded_csv(self):
         logger.info("Archiving (renaming) LAC users ...")

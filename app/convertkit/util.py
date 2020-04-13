@@ -1,22 +1,8 @@
 import os
 import json
+from app import logger
 from app.config import Config
 from app.convertkit.metadata import CkMetadata
-
-
-def prev_users_file_exists():
-    return os.path.isfile(Config.CONVERT_PREV_USERS_PATH)
-
-
-def save_users_to_prev_users_file(users):
-    """
-    overwrites any existing content
-    :param users: json data to save
-    :return:
-    """
-    json_data = json.dumps(users)
-    with open(Config.CONVERT_PREV_USERS_PATH, "w") as f:
-        f.write(json_data)
 
 
 def get_previous_convertkit_users():
@@ -49,3 +35,28 @@ def get_new_users_data(curr_users, prev_users):
             new_user_data.append(user_data)
 
     return new_user_data
+
+
+def new_convertkit_user(curr_users, prev_users):
+    # TODO start here - check for uniqueness
+    for curr in curr_users:
+        for prev in prev_users:
+            if curr not in prev:
+                return True
+    return False
+
+
+def prev_users_file_exists():
+    return os.path.isfile(Config.CONVERT_PREV_USERS_PATH)
+
+
+def save_users_to_prev_users_file(users):
+    """
+    overwrites any existing content
+    :param users: json data to save
+    :return:
+    """
+    logger.info("Saving current CK users to historical file")
+    json_data = json.dumps(users)
+    with open(Config.CONVERT_PREV_USERS_PATH, "w") as f:
+        f.write(json_data)

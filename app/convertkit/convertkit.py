@@ -24,7 +24,8 @@ class ConvertKit:
         if util.prev_users_file_exists():
             prev_users = util.get_previous_convertkit_users()
 
-            if len(curr_users) > len(prev_users):
+            if util.new_convertkit_user(curr_users, prev_users):
+            # if len(curr_users) > len(prev_users):
                 logger.info("New ConvertKit users found. Adding them to Less Annoying CRM ...")
                 new_users = util.get_new_users_data(curr_users=curr_users, prev_users=prev_users)
 
