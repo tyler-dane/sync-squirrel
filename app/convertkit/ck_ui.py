@@ -14,10 +14,10 @@ class ConvertKitUi:
         self.logged_in = False
 
     def add_users_to_ck(self, users_info):
-        self._login_if_needed()
-
         for user in users_info:
             if not self.ck_api.user_exists(user_email=user["email"]):
+                self._login_if_needed()
+
                 first_name = user["first_name"]
                 email = user["email"]
                 logger.info(f"Adding CK subscriber ({email})...")
