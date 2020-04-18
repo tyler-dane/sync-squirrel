@@ -38,11 +38,17 @@ def get_new_users_data(curr_users, prev_users):
 
 
 def new_convertkit_user(curr_users, prev_users):
-    # TODO start here - check for uniqueness
+    curr_user_emails = []
+    prev_user_emails = []
+
     for curr in curr_users:
-        for prev in prev_users:
-            if curr not in prev:
-                return True
+        curr_user_emails.append(curr["email_address"])
+    for prev in prev_users:
+        prev_user_emails.append(prev["email_address"])
+
+    for curr in curr_users:
+        if curr["email_address"] not in prev_user_emails:
+            return True
     return False
 
 

@@ -11,6 +11,7 @@ class ConvertKitUi:
         self.ck_api = ConvertKitApi()
         self.sequences = sequences
         self.max_retries = max_retries
+        self.logged_in = False
 
     def login(self, username, password):
         logger.info("Logging in ...")
@@ -27,12 +28,9 @@ class ConvertKitUi:
 
     def add_users_to_ck(self, users_info):
 
-        # TODO remove bool if unneeded
-        logged_in = False
-
-        if logged_in is False:
+        if self.logged_in is False:
             self.login(username=Config.CONVERT_USER, password=Config.CONVERT_PW)
-            logged_in = True
+            self.logged_in = True
 
         for user in users_info:
             if not self.ck_api.user_exists(user_email=user["email"]):
@@ -51,6 +49,9 @@ class ConvertKitUi:
                     self._click_sequences_dropdown()
                     self._click_sequences_checkboxes()
                     self._click_save_subscriber_btn()
+
+                    # TODO save message to changelog
+                    # f"User added to ConvertKit: {email}"
 
                 except Exception as e:
                     logger.exception(e)

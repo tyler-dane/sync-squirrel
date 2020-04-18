@@ -131,6 +131,9 @@ class Lac:
                 else:
                     logger.warning("No note provided for user")
 
+                # TODO log to change log
+                # f"Created LAC user: {user['email']} "
+
         # TODO update prev_lac file (after converting to JSON
 
     def add_any_new_users_to_convertkit(self):
