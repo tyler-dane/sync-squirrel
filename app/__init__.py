@@ -14,20 +14,17 @@ import logging
 # fp.set_preference("browser.helperApps.neverAsk.saveToDisk", "text/csv")
 
 
-opts = FFOptions()
 # opts.headless = True
 # driver_prefs = Firefox(options=opts, firefox_profile=fp, executable_path='/opt/WebDriver/geckodriver')
 # driver = Firefox(options=opts, executable_path='/opt/WebDriver/geckodriver')  # works
 
-opts.binary_location='/Users/ty/bin/chromedriver'
+opts = FFOptions()
+opts.binary_location = '/Users/ty/bin/chromedriver'
 
 driver = Chrome(executable_path='/Users/ty/bin/chromedriver')
-
 
 wait = WebDriverWait(driver, 10)
 fluent_wait = WebDriverWait(driver, timeout=10, poll_frequency=0.2)
 
 util.create_logger("info", "SyncSquirrel.log")
 logger = logging.getLogger()
-
-

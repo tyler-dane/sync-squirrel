@@ -21,7 +21,7 @@ class LacUI:
         pw_elem.send_keys(Config.LAC_PW)
         login_btn_elem.click()
 
-    def export_contacts(self):
+    def export_current_contacts(self):
         wait.until(ec.visibility_of_all_elements_located)
 
         # the export btn is on this page
@@ -40,9 +40,9 @@ class LacUI:
                     actions.click()
                     actions.perform()
 
-                    logger.info("\n*** clicking export ... ***\n")
+                    logger.info("Clicking export button ...")
                     a.click()
                     time.sleep(15)
-                logger.info(f"Exported contacts")
+            logger.info(f"Exported contacts")
         except ElementClickInterceptedException:
             pass

@@ -1,4 +1,3 @@
-import json
 import os
 import time
 import csv
@@ -8,7 +7,8 @@ from xlrd.timemachine import xrange
 
 from app import logger, util
 from app.config import Config
-from app.convertkit.convertkit import ConvertKit
+from app.convertkit.ck_api import ConvertKitApi
+from app.convertkit.ck_ui import ConvertKitUi
 from app.less_annoying_crm.lac_api import LacApi
 from app.less_annoying_crm.lac_ui import LacUI
 
@@ -17,17 +17,25 @@ class Lac:
     def __init__(self, timeout=15):
         self.lac_ui = LacUI()
         self.lac_api = LacApi()
+        self.ck_ui = ConvertKitUi()
+        self.ck_api = ConvertKitApi()
         self.timeout = timeout
         self.new_user_data = []  # to be added once needed
 
     def get_any_new_lac_users(self):
+        """
+        NOTE - This can be converted to use the LAC API instead of Selenium
+        :return:
+        """
+
         ###################
         # export from LAC #
         ###################
         self.lac_ui.login()
         time.sleep(4)
-        self.lac_ui.export_contacts()
+        self.lac_ui.export_current_contacts()
         time.sleep(5)  # TODO more intelligent way to ensure file finished downloading
+
         xls_path = util.get_xls_path(search_dir=Config.DOWNLOADS_DIR)
 
         prev_contacts_csv = Config.LAC_PREV_PATH
@@ -54,7 +62,7 @@ class Lac:
 
         for added_em in added_emails:
             if added_em not in removed_emails:
-                logger.info(f"** processing new user with email: {added_em}")
+                logger.info(f"New LAC user found ({added_em}). Saving user data ...")
 
                 # find user info and save #
                 for a in added:
@@ -64,8 +72,10 @@ class Lac:
                             "email": a["email"]
                         })
 
+        if not new_user_data:
+            logger.info("No new LAC users found")
+
         self.new_user_data = new_user_data
-        return new_user_data
 
     def _convert_xls_to_csv(self, xls_path):
 
@@ -102,111 +112,55 @@ class Lac:
 
         return added_data, removed_data
 
-    def process_new_lac_users(self, users_info):
-        """Called by other systems (Acuity, ConvertKit)"""
+    def create_new_lac_user(self, users_info):
+        """
+        Called by other systems (Acuity, ConvertKit)
+
+        Uses LessAnnoying CRM API to create new users (with group & note)
+
+        """
         logger.info("Adding new user(s) to LessAnnoying CRM ...")
 
-        for lac_user in users_info:
-            lac_user_id = self._create_new_lac_user(user_data=lac_user)
-            self._add_lac_user_to_group(user_id=lac_user_id, group_name=Config.LAC_NEW_USER_GROUP_NAME)
-            if lac_user["note"]:
-                self._add_note_to_lac_user(lac_user_id=lac_user_id, note=lac_user["note"])
-            else:
-                logger.warning("No note provided for user")
-        logger.info("Done processing new LessAnnoying CRM user(s)")
+        for user in users_info:
+            if not self.lac_api.user_exists(email=user["email"]):
+                lac_user_id = self.lac_api.create_new_user(user_data=user)
+                self.lac_api.add_user_to_group(user_id=lac_user_id, group_name=Config.LAC_NEW_USER_GROUP_NAME)
 
-    def _create_new_lac_user(self, user_data):
-        func = "CreateContact"
-        params = {
-            "FirstName": user_data["first_name"],
-            "LastName": user_data["last_name"],
-            "Email": [
-                {
-                    "Text": user_data["email"], "Type": "Work"
+                if user["note"]:
+                    self.lac_api.add_note_to_user(lac_user_id=lac_user_id, note=user["note"])
+                else:
+                    logger.warning("No note provided for user")
+
+                # TODO log to change log
+                # f"Created LAC user: {user['email']} "
+
+        # TODO update prev_lac file (after converting to JSON
+
+    def add_any_new_users_to_convertkit(self):
+        logger.info("""
+        *******************************
+        Syncing 
+            Less Annoying CRM --> ConvertKit
+        *******************************
+        """)
+
+        logger.info("Checking if any new LAC users ...")
+        self.get_any_new_lac_users()
+
+        if self.new_user_data:
+            logger.info("New LAC users found. Checking if new LAC users already exist in ConvertKit...")
+
+            new_ck_users = []
+            for new_lac_user in self.new_user_data:
+                user = {
+                    "first_name": new_lac_user["first_name"],
+                    "email": new_lac_user["email"]
                 }
-            ]
-        }
-        json_params = json.dumps(params)
-        url = f"{self.lac_api.api_base}&Function={func}&Parameters={json_params}"
-        resp = self.lac_api.get_request(url=url)
-        if resp["Success"]:
-            user_id = resp["ContactId"]
-            return user_id
-        else:
-            logger.error(f"Failed to add user with this data to LAC:\n\t{user_data}")
+                new_ck_users.append(user)
 
-    def _add_lac_user_to_group(self, user_id, group_name):
-        logger.info(f"Adding user with id *{user_id}* to *{group_name}* group ...")
-        func = "AddContactToGroup"
-        params = {
-            "ContactId": user_id,
-            "GroupName": group_name
-        }
-        json_params = json.dumps(params)
-        url = f"{self.lac_api.api_base}&Function={func}&Parameters={json_params}"
-        resp = self.lac_api.get_request(url=url)
-        if resp["Success"] is True:
-            logger.info(f"Added user with id *{user_id}* to *{group_name}* group")
-        else:
-            logger.error("Problem adding LAC user to group")
-
-    def _add_note_to_lac_user(self, lac_user_id, note):
-        func = "CreateNote"
-        params = {
-            "ContactId": lac_user_id,
-            "Note": note
-        }
-        json_params = json.dumps(params)
-        url = f"{self.lac_api.api_base}&Function={func}&Parameters={json_params}"
-        resp = self.lac_api.get_request(url=url)
-
-        if resp["Success"]:
-            logger.info("Successfully added note to LAC user")
-        else:
-            logger.error("Problem adding note to user")
+            self.ck_ui.add_users_to_ck(users_info=new_ck_users)
 
 
-def add_any_new_users_to_convertkit(self):
-    self.get_any_new_lac_users()
-    if self.new_user_data:
-        logger.info("New LAC users found. Adding to convertkit...")
-        self._add_new_users_to_convertkit()
-    else:
-        logger.info("No new LAC users since last time")
-
-
-def _add_new_users_to_convertkit(self):
-    new_subs_info = []
-    for new_lac_user in self.new_user_data:
-        new_sub_data = {
-            "first_name": new_lac_user["first_name"],
-            "email": new_lac_user["email"]
-        }
-        new_subs_info.append(new_sub_data)
-
-    ck = ConvertKit()
-    ck.add_subscribers(new_subs_info)
-
-
-def archive_downloaded_csv(self):
-    logger.info("Archiving (renaming) LAC users ...")
-    os.rename(src=Config.LAC_CURR_PATH, dst=Config.LAC_PREV_PATH)
-
-
-if __name__ == "__main__":
-    # this main for testing and demos only
-    less = Lac()
-
-    new_user_info = [
-        {"first_name": "spam",
-         "last_name": "AAAEggs",
-         "email": "spamandeggs@fake.com"
-         },
-        {"first_name": "potato",
-         "last_name": "AAAPotatoMan",
-         "email": "potato@fake.com"
-         }
-    ]
-
-    less.process_new_lac_users(users_info=new_user_info)
-    # less.add_any_new_users_to_convertkit()
+    def archive_downloaded_csv(self):
+        logger.info("Archiving (renaming) LAC users ...")
+        os.rename(src=Config.LAC_CURR_PATH, dst=Config.LAC_PREV_PATH)

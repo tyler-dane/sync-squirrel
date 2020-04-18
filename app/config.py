@@ -31,6 +31,8 @@ class Config:
     ##########
     ACUITY_USER = util.get_config_value_yaml(CONFIG_DATA, "acuity.username")
     ACUITY_PW = util.get_config_value_yaml(CONFIG_DATA, "acuity.password")
+    ACUITY_CURR_FILE_PATH = os.path.join(DOWNLOADS_DIR, Con.ACUITY_CURR_FILE)
+    ACUITY_HIST_FILE_PATH = os.path.join(DOWNLOADS_DIR, Con.ACUITY_HIST_FILE)
 
 
     #####################
