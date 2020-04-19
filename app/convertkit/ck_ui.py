@@ -13,27 +13,11 @@ class ConvertKitUi:
         self.max_retries = max_retries
         self.logged_in = False
 
-    def login(self, username, password):
-        logger.info("Logging in ...")
-        driver.get("https://app.convertkit.com/users/login")
-
-        username_elem = driver.find_element_by_id("user_email")
-        password_elem = driver.find_element_by_id("user_password")
-
-        username_elem.send_keys(username)
-        password_elem.send_keys(password)
-
-        submit_btn = "/html/body/div[1]/div/div[2]/div[2]/div/div/div[2]/form/button"
-        driver.find_element_by_xpath(submit_btn).click()
-
     def add_users_to_ck(self, users_info):
-
-        if self.logged_in is False:
-            self.login(username=Config.CONVERT_USER, password=Config.CONVERT_PW)
-            self.logged_in = True
-
         for user in users_info:
             if not self.ck_api.user_exists(user_email=user["email"]):
+                self._login_if_needed()
+
                 first_name = user["first_name"]
                 email = user["email"]
                 logger.info(f"Adding CK subscriber ({email})...")
@@ -63,6 +47,25 @@ class ConvertKitUi:
         curr_users = self.ck_api.get_current_convertkit_users()
         util.save_users_to_prev_users_file(users=curr_users)
 
+    def _login_if_needed(self):
+        driver.get("https://app.convertkit.com")
+        if driver.current_url == "https://app.convertkit.com/users/login":  # redirected
+            self._login(username=Config.CONVERT_USER, password=Config.CONVERT_PW)
+            self.logged_in = True
+
+    def _login(self, username, password):
+        logger.info("Logging in ...")
+        driver.get("https://app.convertkit.com/users/login")
+
+        username_elem = driver.find_element_by_id("user_email")
+        password_elem = driver.find_element_by_id("user_password")
+
+        username_elem.send_keys(username)
+        password_elem.send_keys(password)
+
+        submit_btn = "/html/body/div[1]/div/div[2]/div[2]/div/div/div[2]/form/button"
+        driver.find_element_by_xpath(submit_btn).click()
+
     def _click_add_subs_home_btn(self):
         logger.info("Clicking Add Subscribers button ...")
         try:
@@ -88,9 +91,7 @@ class ConvertKitUi:
                 # this alone didnt fix, needed sleep
                 # single_sub_btn = wait.until(ec.element_to_be_clickable((By.CLASS_NAME, "btn--step--single-sub")))
                 single_sub_btn = driver.find_element_by_class_name("btn--step--single-sub")  # orig, worked but fickle
-                print("***\nFound Single Sub Button\n***")
                 single_sub_btn.click()
-                print("!!! clicked singl sub button !!!")
                 time.sleep(2)
 
             except (NoSuchElementException, TimeoutException) as ne:
@@ -107,7 +108,6 @@ class ConvertKitUi:
             # wait(ec.presence_of_all_elements_located)
             driver.implicitly_wait(10)
             # first_name_element = wait.until(ec.element_located_to_be_selected((By.ID, 'first-name')))  # testing
-            print('\n**located first name elem**\n')
 
             first_name_element = driver.find_element_by_id("first-name")  # orig, broke
             email_element = driver.find_element_by_id("email")

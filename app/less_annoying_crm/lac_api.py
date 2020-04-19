@@ -27,6 +27,9 @@ class LacApi:
     def add_note_to_user(self, lac_user_id, note):
         logger.info("Adding note to LAC user ...")
 
+        note = note.replace("&", "And")  # &s mess up URL
+
+
         func = "CreateNote"
         params = {
             "ContactId": lac_user_id,
