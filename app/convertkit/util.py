@@ -37,6 +37,7 @@ def get_new_users_data(curr_users, prev_users):
     return new_user_data
 
 
+
 def new_convertkit_user(curr_users, prev_users):
     curr_user_emails = []
     prev_user_emails = []

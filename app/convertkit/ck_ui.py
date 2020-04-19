@@ -1,6 +1,7 @@
 import time
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
-from app import logger, driver, wait, ec, util
+from app import logger, driver, wait, ec
+from app import util as app_util
 from app.config import Config
 from app.convertkit.ck_api import ConvertKitApi
 from app.convertkit import util
@@ -34,8 +35,7 @@ class ConvertKitUi:
                     self._click_sequences_checkboxes()
                     self._click_save_subscriber_btn()
 
-                    # TODO save message to changelog
-                    # f"User added to ConvertKit: {email}"
+                    app_util.write_to_changelog(f"Created ConvertKit user: {email}")
 
                 except Exception as e:
                     logger.exception(e)

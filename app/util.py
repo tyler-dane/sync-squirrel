@@ -1,9 +1,9 @@
-import ntpath
 import os
 import sys
 import logging
 from functools import reduce
 from pathlib import Path
+from datetime import datetime
 
 from app.constants import Con
 
@@ -202,3 +202,12 @@ def remove_all_but_newest_file_in_dir(search_dir, ext=None):
                 xls_path = os.path.join(search_dir, xls)
                 print(f"removing {xls_path} ...")
                 os.remove(xls)
+
+
+def write_to_changelog(msg):
+    logger.debug(f"Writing to change log: {msg}")
+    now = datetime.now()
+    timestamp = now.strftime("%y-%m-%d %H:%M")
+
+    with open(Con.CHANGELOG, "a+") as f:
+        f.write(f"\n{timestamp}  {msg}")
