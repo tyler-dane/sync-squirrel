@@ -131,8 +131,7 @@ class Lac:
                 else:
                     logger.warning("No note provided for user")
 
-                # TODO log to change log
-                # f"Created LAC user: {user['email']} "
+                util.write_to_changelog(f"Created LAC user: {user['email']}")
 
         # TODO update prev_lac file (after converting to JSON
 

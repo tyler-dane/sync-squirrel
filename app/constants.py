@@ -7,6 +7,8 @@ class Con:
     LAC_CURR_FILE = "lac_current.csv"
     LAC_HIST_USERS_FILE = "lac_prev.csv"
 
+    CHANGELOG = "CHANGE_LOG.txt"
+
     START_SYNC_MSG = \
         """
        
