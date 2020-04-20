@@ -1,6 +1,7 @@
 import time
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
-from app import logger, driver, wait, ec
+from selenium.webdriver.support import expected_conditions as ec
+from app import logger, driver, wait
 from app import util as app_util
 from app.config import Config
 from app.convertkit.ck_api import ConvertKitApi

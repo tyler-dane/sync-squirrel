@@ -12,6 +12,7 @@ class Config:
     # OS #
     ######
     DOWNLOADS_DIR = util.get_config_value_yaml(CONFIG_DATA, "app.downloads_dir")
+    WEBDRIVER_PATH = util.get_config_value_yaml(CONFIG_DATA, "app.webdriver_path")
 
     ##############
     # ConvertKit #

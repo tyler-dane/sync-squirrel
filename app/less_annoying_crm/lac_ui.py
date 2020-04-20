@@ -1,6 +1,7 @@
 from selenium.common.exceptions import ElementClickInterceptedException
 from selenium.webdriver import ActionChains
-from app import logger, driver, wait, ec
+from selenium.webdriver.support import expected_conditions as ec
+from app import logger, driver, wait
 from app.config import Config
 import time
 

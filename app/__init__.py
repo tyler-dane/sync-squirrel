@@ -1,10 +1,8 @@
-import time
-from selenium import webdriver
-from selenium.webdriver import Chrome, Firefox
+from selenium.webdriver import Chrome
 from selenium.webdriver.firefox.options import Options as FFOptions
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as ec
 from app import util
+from app.config import Config
 import logging
 
 # fp = webdriver.FirefoxProfile()
@@ -19,9 +17,9 @@ import logging
 # driver = Firefox(options=opts, executable_path='/opt/WebDriver/geckodriver')  # works
 
 opts = FFOptions()
-opts.binary_location = '/Users/ty/bin/chromedriver'
+opts.binary_location = Config.WEBDRIVER_PATH
 
-driver = Chrome(executable_path='/Users/ty/bin/chromedriver')
+driver = Chrome(executable_path=Config.WEBDRIVER_PATH)
 
 wait = WebDriverWait(driver, 10)
 fluent_wait = WebDriverWait(driver, timeout=10, poll_frequency=0.2)
