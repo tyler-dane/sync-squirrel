@@ -1,1 +1,19 @@
-# update once app ready to deploy
+app:
+  downloads_dir:
+  webdriver_path:
+acuity:
+  username:
+  password:
+
+convertkit:
+  username:
+  password:
+  sequences: New Subscriber
+  api_secret:
+
+less_annoying_crm:
+  api_user_code:
+  api_token:
+  username:
+  password:
+  new_user_group_names: Acuity_Appointment
