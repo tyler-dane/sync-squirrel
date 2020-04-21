@@ -64,8 +64,15 @@ class ConvertKitUi:
         username_elem.send_keys(username)
         password_elem.send_keys(password)
 
-        submit_btn = "/html/body/div[1]/div/div[2]/div[2]/div/div/div[2]/form/button"
-        driver.find_element_by_xpath(submit_btn).click()
+        all_btns = driver.find_elements_by_tag_name("button")
+        for btn in all_btns:
+            lower_btn_name = btn.text.lower()
+            if "log in" in lower_btn_name:
+                btn.click()
+
+        # submit_btn_path = "/html/body/div[1]/div/div[2]/div[2]/div/div/div[2]/form/button"
+        # submit_btn = driver.find_element_by_xpath(submit_btn_path)
+        # submit_btn.click()
 
     def _click_add_subs_home_btn(self):
         logger.info("Clicking Add Subscribers button ...")

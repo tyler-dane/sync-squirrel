@@ -5,7 +5,7 @@ from app.constants import Con
 
 
 class Config:
-    CONFIG_PATH = "config.yaml"
+    CONFIG_PATH = "config.dev.yaml"
     CONFIG_DATA = util.get_config_data_yaml(CONFIG_PATH)
 
     ######
