@@ -22,12 +22,6 @@ def archive_current_acuity_csv():
 
 def compare_prev_and_curr_acuity_users():
     logger.info("Comparing previous & current Acuity users ...")
-
-    ############
-    # get data #
-    ############
-    time.sleep(5)  # buffer for export file to finish download
-
     if not os.path.exists(Config.ACUITY_HIST_FILE_PATH):
         logger.info("No hist users file for Acuity.")
         logger.info("Creating hist users file with current users.")
@@ -46,6 +40,9 @@ def export_acuity_users_to_csv():
     logger.info("Exporting client data ...")
     export_url = "https://secure.acuityscheduling.com/clients.php?action=bulk&op=exportExcelAll"
     driver.get(export_url)
+
+    logger.info("Sleeping to let acuity download finish ...")
+    time.sleep(Config.ACUITY_EXPORT_WAIT_TIME_SEC)  # buffer for export file to finish download
 
 
 def get_added_and_removed_data(compare_out):

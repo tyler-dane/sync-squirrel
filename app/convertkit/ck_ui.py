@@ -27,7 +27,7 @@ class ConvertKitUi:
                 try:
                     wait.until(ec.visibility_of_all_elements_located)
                     wait.until(ec.presence_of_all_elements_located)
-                    time.sleep(5)
+                    time.sleep(Config.CONVERT_SLEEP_MED)
 
                     self._click_add_subs_home_btn()
                     self._click_add_single_sub_btn(first_name=first_name, email=email)
@@ -41,7 +41,7 @@ class ConvertKitUi:
                 except Exception as e:
                     logger.exception(e)
                     print("sleeping before quitting ...")
-                    time.sleep(10)
+                    time.sleep(Config.CONVERT_SLEEP_LONG)
                     driver.quit()
 
         # keep hist users file up-to-date
@@ -93,14 +93,14 @@ class ConvertKitUi:
         if curr_retry_count < self.max_retries:
 
             try:
-                time.sleep(4)
+                time.sleep(Config.CONVERT_SLEEP_MED)
                 driver.implicitly_wait(10)  # explicit driver wait wasnt working for single sub btn
 
                 # this alone didnt fix, needed sleep
                 # single_sub_btn = wait.until(ec.element_to_be_clickable((By.CLASS_NAME, "btn--step--single-sub")))
                 single_sub_btn = driver.find_element_by_class_name("btn--step--single-sub")  # orig, worked but fickle
                 single_sub_btn.click()
-                time.sleep(2)
+                time.sleep(Config.CONVERT_SLEEP_MED)
 
             except (NoSuchElementException, TimeoutException) as ne:
                 curr_retry_count += 1
@@ -114,7 +114,7 @@ class ConvertKitUi:
             # enter name and email #
             ########################
             # wait(ec.presence_of_all_elements_located)
-            driver.implicitly_wait(10)
+            driver.implicitly_wait(Config.CONVERT_SLEEP_LONG)
             # first_name_element = wait.until(ec.element_located_to_be_selected((By.ID, 'first-name')))  # testing
 
             first_name_element = driver.find_element_by_id("first-name")  # orig, broke

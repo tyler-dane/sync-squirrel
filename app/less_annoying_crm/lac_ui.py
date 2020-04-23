@@ -23,13 +23,16 @@ class LacUI:
         login_btn_elem.click()
 
     def export_current_contacts(self):
+        logger.info("Sleeping before going to LAC endpoint ...")
+        time.sleep(Config.LAC_EXPORT_WAIT_TIME_SEC_SHORT)
         wait.until(ec.visibility_of_all_elements_located)
 
         # the export btn is on this page
         browse_url = "https://www.lessannoyingcrm.com/app/Browse"
         driver.get(browse_url)
 
-        time.sleep(6)
+        logger.info(f"Sleeping to let export finish ...")
+        time.sleep(Config.LAC_EXPORT_WAIT_TIME_SEC_SHORT)
 
         try:
             # find the 'Export' btn/link
@@ -43,7 +46,8 @@ class LacUI:
 
                     logger.info("Clicking export button ...")
                     a.click()
-                    time.sleep(15)
+                    logger.info("Sleeping to let export finish ...")
+                    time.sleep(Config.LAC_EXPORT_WAIT_TIME_SEC)
             logger.info(f"Exported contacts")
         except ElementClickInterceptedException:
             pass

@@ -1,3 +1,4 @@
+import shutil
 import os
 import time
 import csv
@@ -32,9 +33,9 @@ class Lac:
         # export from LAC #
         ###################
         self.lac_ui.login()
-        time.sleep(4)
         self.lac_ui.export_current_contacts()
-        time.sleep(5)  # TODO more intelligent way to ensure file finished downloading
+
+        time.sleep(Config.LAC_EXPORT_WAIT_TIME_SEC_SHORT)
 
         xls_path = util.get_xls_path(search_dir=Config.DOWNLOADS_DIR)
 
@@ -92,6 +93,10 @@ class Lac:
         return Config.LAC_CURR_PATH
 
     def _get_added_and_removed_contacts(self, prev_csv, curr_csv):
+        if not os.path.isfile(prev_csv):
+            # just make copy to avoid FNF erro
+            shutil.copyfile(curr_csv, prev_csv)
+
         compare_out = compare(
             load_csv(open(prev_csv)),
             load_csv(open(curr_csv))
@@ -158,7 +163,6 @@ class Lac:
                 new_ck_users.append(user)
 
             self.ck_ui.add_users_to_ck(users_info=new_ck_users)
-
 
     def archive_downloaded_csv(self):
         logger.info("Archiving (renaming) LAC users ...")

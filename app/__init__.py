@@ -1,25 +1,22 @@
 from selenium.webdriver import Chrome
-from selenium.webdriver.firefox.options import Options as FFOptions
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.chrome.options import Options
 from app import util
 from app.config import Config
 import logging
 
-# fp = webdriver.FirefoxProfile()
-# fp.set_preference("browser.download.folderList", 2)
-# fp.set_preference("browser.download.manager.showWhenStarting", False)
-# fp.set_preference("browser.helperApps.alwaysAsk.force", False)
-# fp.set_preference("browser.helperApps.neverAsk.saveToDisk", "text/csv")
+opts = Options()
+opts.headless = Config.WEBDRIVER_HEADLESS
+opts.add_experimental_option("prefs", {
+  "download.default_directory": f"{Config.DOWNLOADS_DIR}",
+  "download.prompt_for_download": False,
+  "download.directory_upgrade": True,
+  "safebrowsing.enabled": True
+})
 
 
-# opts.headless = True
-# driver_prefs = Firefox(options=opts, firefox_profile=fp, executable_path='/opt/WebDriver/geckodriver')
-# driver = Firefox(options=opts, executable_path='/opt/WebDriver/geckodriver')  # works
-
-opts = FFOptions()
-opts.binary_location = Config.WEBDRIVER_PATH
-
-driver = Chrome(executable_path=Config.WEBDRIVER_PATH)
+driver = Chrome(executable_path=Config.WEBDRIVER_PATH,
+                options=opts)
 
 wait = WebDriverWait(driver, 10)
 fluent_wait = WebDriverWait(driver, timeout=10, poll_frequency=0.2)
