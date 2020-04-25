@@ -46,7 +46,8 @@ class ConvertKitUi:
 
         # keep hist users file up-to-date
         curr_users = self.ck_api.get_current_convertkit_users()
-        util.save_users_to_prev_users_file(users=curr_users)
+        logger.info("Archiving current CK users ...")
+        app_util.archive_curr_users(file=Config.CONVERT_PREV_USERS_PATH, curr_users=curr_users)
 
     def _login_if_needed(self):
         driver.get("https://app.convertkit.com")

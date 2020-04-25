@@ -31,14 +31,16 @@ class LacUI:
         browse_url = "https://www.lessannoyingcrm.com/app/Browse"
         driver.get(browse_url)
 
-        logger.info(f"Sleeping to let export finish ...")
+        logger.info(f"Sleeping before trying to export ...")
         time.sleep(Config.LAC_EXPORT_WAIT_TIME_SEC_SHORT)
+        successfully_exported = False
 
         try:
             # find the 'Export' btn/link
             all_a_elems = driver.find_elements_by_tag_name("a")
             for a in all_a_elems:
                 if "Export" in a.text:
+                    logger.info("Found LAC's export button")
                     actions = ActionChains(driver)
                     actions.move_to_element(a)  # must hover over before click works
                     actions.click()
@@ -48,6 +50,9 @@ class LacUI:
                     a.click()
                     logger.info("Sleeping to let export finish ...")
                     time.sleep(Config.LAC_EXPORT_WAIT_TIME_SEC)
-            logger.info(f"Exported contacts")
+                    successfully_exported = True
+                    logger.info(f"Exported LAC contacts")
+            if successfully_exported is False:
+                logger.error("Did not export LAC contacts :(")
         except ElementClickInterceptedException:
             pass

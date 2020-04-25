@@ -64,9 +64,7 @@ class Config:
     LAC_PW = util.get_config_value_yaml(CONFIG_DATA, "less_annoying_crm.password")
     LAC_NEW_USER_GROUP_NAME = util.get_config_value_yaml(CONFIG_DATA, "less_annoying_crm.new_user_group_names")
 
-    LAC_CURR_PATH = os.path.join(DOWNLOADS_DIR, Con.LAC_CURR_FILE)
-
-    LAC_PREV_PATH = os.path.join(DOWNLOADS_DIR, Con.LAC_HIST_USERS_FILE)
+    LAC_PREV_USERS_PATH = os.path.join(DOWNLOADS_DIR, Con.LAC_HIST_USERS_FILE)
     LAC_EXPORT_WAIT_TIME_SEC = util.get_config_value_yaml(CONFIG_DATA, "less_annoying_crm.export_wait_time_s")
     LAC_EXPORT_WAIT_TIME_SEC_SHORT = util.get_config_value_yaml(CONFIG_DATA,
                                                                 "less_annoying_crm.export_wait_time_s_short")

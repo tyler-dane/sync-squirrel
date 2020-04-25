@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 import logging
@@ -16,6 +17,17 @@ def all_files_under(path, ext=None):
         for filename in filenames:
             if ext in filename:
                 yield os.path.join(cur_path, filename)
+
+
+def archive_curr_users(file, curr_users):
+    """
+    overwrites any existing content
+    :param curr_users: json data to save
+    :return:
+    """
+    json_data = json.dumps(curr_users)
+    with open(file, "w") as f:
+        f.write(json_data)
 
 
 def create_logger(log_level, log_file_path):
@@ -177,7 +189,6 @@ def get_xls_path(search_dir):
         warn = f"More than one .xls file in {search_dir}. Deleting all but newest"
         logger.warning(warn)
         newest_xls_path = max(all_files_under(path=search_dir, ext="xls"), key=os.path.getmtime)
-        # newest_xls = ntpath.basename(newest_xls_path)
         remove_all_but_newest_file_in_dir(search_dir=search_dir, ext="xls")
         return newest_xls_path
 

@@ -7,6 +7,10 @@ Syncs contacts between Less-Annoying CRM, ConvertKit, Acuity
 - Works in Chrome and Chromium
 - TBD
 
+#### Update `run.sh`
+Change path
+
+
 ## Other notes
 Install Chromedriver on Linux:
 ```bash
