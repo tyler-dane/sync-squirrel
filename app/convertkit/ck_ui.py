@@ -1,6 +1,7 @@
 import time
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
-from app import logger, driver, wait, ec
+from selenium.webdriver.support import expected_conditions as ec
+from app import logger, driver, wait
 from app import util as app_util
 from app.config import Config
 from app.convertkit.ck_api import ConvertKitApi
@@ -26,7 +27,7 @@ class ConvertKitUi:
                 try:
                     wait.until(ec.visibility_of_all_elements_located)
                     wait.until(ec.presence_of_all_elements_located)
-                    time.sleep(5)
+                    time.sleep(Config.CONVERT_SLEEP_MED)
 
                     self._click_add_subs_home_btn()
                     self._click_add_single_sub_btn(first_name=first_name, email=email)
@@ -40,12 +41,13 @@ class ConvertKitUi:
                 except Exception as e:
                     logger.exception(e)
                     print("sleeping before quitting ...")
-                    time.sleep(10)
+                    time.sleep(Config.CONVERT_SLEEP_LONG)
                     driver.quit()
 
         # keep hist users file up-to-date
         curr_users = self.ck_api.get_current_convertkit_users()
-        util.save_users_to_prev_users_file(users=curr_users)
+        logger.info("Archiving current CK users ...")
+        app_util.archive_curr_users(file=Config.CONVERT_PREV_USERS_PATH, curr_users=curr_users)
 
     def _login_if_needed(self):
         driver.get("https://app.convertkit.com")
@@ -63,8 +65,15 @@ class ConvertKitUi:
         username_elem.send_keys(username)
         password_elem.send_keys(password)
 
-        submit_btn = "/html/body/div[1]/div/div[2]/div[2]/div/div/div[2]/form/button"
-        driver.find_element_by_xpath(submit_btn).click()
+        all_btns = driver.find_elements_by_tag_name("button")
+        for btn in all_btns:
+            lower_btn_name = btn.text.lower()
+            if "log in" in lower_btn_name:
+                btn.click()
+
+        # submit_btn_path = "/html/body/div[1]/div/div[2]/div[2]/div/div/div[2]/form/button"
+        # submit_btn = driver.find_element_by_xpath(submit_btn_path)
+        # submit_btn.click()
 
     def _click_add_subs_home_btn(self):
         logger.info("Clicking Add Subscribers button ...")
@@ -85,14 +94,14 @@ class ConvertKitUi:
         if curr_retry_count < self.max_retries:
 
             try:
-                time.sleep(4)
+                time.sleep(Config.CONVERT_SLEEP_MED)
                 driver.implicitly_wait(10)  # explicit driver wait wasnt working for single sub btn
 
                 # this alone didnt fix, needed sleep
                 # single_sub_btn = wait.until(ec.element_to_be_clickable((By.CLASS_NAME, "btn--step--single-sub")))
                 single_sub_btn = driver.find_element_by_class_name("btn--step--single-sub")  # orig, worked but fickle
                 single_sub_btn.click()
-                time.sleep(2)
+                time.sleep(Config.CONVERT_SLEEP_MED)
 
             except (NoSuchElementException, TimeoutException) as ne:
                 curr_retry_count += 1
@@ -106,7 +115,7 @@ class ConvertKitUi:
             # enter name and email #
             ########################
             # wait(ec.presence_of_all_elements_located)
-            driver.implicitly_wait(10)
+            driver.implicitly_wait(Config.CONVERT_SLEEP_LONG)
             # first_name_element = wait.until(ec.element_located_to_be_selected((By.ID, 'first-name')))  # testing
 
             first_name_element = driver.find_element_by_id("first-name")  # orig, broke

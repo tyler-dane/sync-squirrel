@@ -1,4 +1,6 @@
 from app import logger
+from app.config import Config
+from app import util as app_utils
 from app.convertkit.ck_api import ConvertKitApi
 from app.convertkit import util
 
@@ -21,7 +23,7 @@ class ConvertKit:
 
         curr_users = self.ck_api.get_current_convertkit_users()
 
-        if util.prev_users_file_exists():
+        if util.prev_ck_users_file_exists():
             prev_users = util.get_previous_convertkit_users()
 
             if util.new_convertkit_user(curr_users, prev_users):
@@ -36,5 +38,5 @@ class ConvertKit:
         else:
             logger.info(
                 "No previous users file for ConvertKit. Recording current users into historical file for next time")
-            util.save_users_to_prev_users_file(users=curr_users)
-
+            app_utils.archive_curr_users(file=Config.CONVERT_PREV_USERS_PATH,
+                                         curr_users=curr_users)

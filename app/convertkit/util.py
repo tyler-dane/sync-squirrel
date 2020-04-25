@@ -37,7 +37,6 @@ def get_new_users_data(curr_users, prev_users):
     return new_user_data
 
 
-
 def new_convertkit_user(curr_users, prev_users):
     curr_user_emails = []
     prev_user_emails = []
@@ -53,17 +52,5 @@ def new_convertkit_user(curr_users, prev_users):
     return False
 
 
-def prev_users_file_exists():
+def prev_ck_users_file_exists():
     return os.path.isfile(Config.CONVERT_PREV_USERS_PATH)
-
-
-def save_users_to_prev_users_file(users):
-    """
-    overwrites any existing content
-    :param users: json data to save
-    :return:
-    """
-    logger.info("Saving current CK users to historical file")
-    json_data = json.dumps(users)
-    with open(Config.CONVERT_PREV_USERS_PATH, "w") as f:
-        f.write(json_data)

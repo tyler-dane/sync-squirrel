@@ -1,1 +1,28 @@
-# update once app ready to deploy
+app:
+  downloads_dir:
+  webdriver_path:
+  webdriver_headless:
+
+acuity:
+  username:
+  password:
+  export_wait_time_s: 10
+
+convertkit:
+  username:
+  password:
+  sequences: New Subscriber
+  api_secret:
+  sleep_short: 2
+  sleep_med: 6
+  sleep_long: 12
+
+
+less_annoying_crm:
+  api_user_code:
+  api_token:
+  username:
+  password:
+  new_user_group_names: Acuity_Appointment
+  export_wait_time_s: 30
+  export_wait_time_s_short: 12

@@ -1,11 +1,8 @@
+import json
 import os
-import time
-import csv
-import xlrd
-from csv_diff import compare, load_csv
-from xlrd.timemachine import xrange
 
-from app import logger, util
+from app import logger
+from app import util as app_utils
 from app.config import Config
 from app.convertkit.ck_api import ConvertKitApi
 from app.convertkit.ck_ui import ConvertKitUi
@@ -20,25 +17,105 @@ class Lac:
         self.ck_ui = ConvertKitUi()
         self.ck_api = ConvertKitApi()
         self.timeout = timeout
-        self.new_user_data = []  # to be added once needed
+        self.new_user_data = []  # to be added once checking for any new users
 
     def get_any_new_lac_users(self):
-        """
-        NOTE - This can be converted to use the LAC API instead of Selenium
-        :return:
-        """
+        curr_users = self.lac_api.get_all_contacts()
 
+        if os.path.isfile(Config.LAC_PREV_USERS_PATH):
+            prev_users = self.get_prev_lac_users()
+
+            prev_user_emails = []
+            curr_user_emails = []
+            for curr in curr_users:
+                curr_user_emails.append(curr["email"])  # make sure right key
+            for prev in prev_users:
+                prev_user_emails.append(prev["email"])
+
+            for curr in curr_users:
+                if curr["email"] not in prev_user_emails:
+                    self.new_user_data.append(curr)
+        else:
+            logger.info("No prev LAC users file. Saving curr and continuing")
+            app_utils.archive_curr_users(file=Config.LAC_PREV_USERS_PATH,
+                                         curr_users=curr_users)
+
+    def get_prev_lac_users(self):
+        with open(Config.LAC_PREV_USERS_PATH, "r") as prev_lac_f:
+            raw_prev_users = prev_lac_f.read()
+        prev_users = json.loads(raw_prev_users)
+        return prev_users
+
+    def create_new_lac_user(self, users_info):
+        """
+        Called by other systems (Acuity, ConvertKit)
+
+        Uses LessAnnoying CRM API to create new users (with group & note)
+
+        """
+        logger.info("Adding new user(s) to LessAnnoying CRM ...")
+
+        for user in users_info:
+            if not self.lac_api.user_exists(email=user["email"]):
+                lac_user_id = self.lac_api.create_new_user(user_data=user)
+                self.lac_api.add_user_to_group(user_id=lac_user_id, group_name=Config.LAC_NEW_USER_GROUP_NAME)
+
+                if user["note"]:
+                    self.lac_api.add_note_to_user(lac_user_id=lac_user_id, note=user["note"])
+                else:
+                    logger.warning("No note provided for user")
+
+                app_utils.write_to_changelog(f"Created LAC user: {user['email']}")
+
+        # TODO update prev_lac file (after converting to JSON
+
+    def add_any_new_users_to_convertkit(self):
+        logger.info("""
+        *******************************
+        Syncing 
+            Less Annoying CRM --> ConvertKit
+        *******************************
+        """)
+
+        logger.info("Checking if any new LAC users ...")
+        self.get_any_new_lac_users()
+
+        if self.new_user_data:
+            logger.info("New LAC users found. Checking if new LAC users already exist in ConvertKit...")
+
+            new_ck_users = []
+            for new_lac_user in self.new_user_data:
+                user = {
+                    "first_name": new_lac_user["first_name"],
+                    "email": new_lac_user["email"]
+                }
+                new_ck_users.append(user)
+
+            self.ck_ui.add_users_to_ck(users_info=new_ck_users)
+
+
+# Old way to getting curr/prev users with XLS and CSV files
+"""
+import os
+import shutil
+import time
+import csv
+import xlrd
+from csv_diff import compare, load_csv
+from xlrd.timemachine import xrange
+
+    def get_any_new_lac_users_ui_not_used(self):
         ###################
         # export from LAC #
         ###################
         self.lac_ui.login()
-        time.sleep(4)
         self.lac_ui.export_current_contacts()
-        time.sleep(5)  # TODO more intelligent way to ensure file finished downloading
+
+        time.sleep(Config.LAC_EXPORT_WAIT_TIME_SEC_SHORT)
 
         xls_path = util.get_xls_path(search_dir=Config.DOWNLOADS_DIR)
 
-        prev_contacts_csv = Config.LAC_PREV_PATH
+        prev_contacts_csv = Config.LAC_PREV_USERS_PATH
         curr_contacts_csv = self._convert_xls_to_csv(xls_path)
 
         added, removed = self._get_added_and_removed_contacts(prev_csv=prev_contacts_csv, curr_csv=curr_contacts_csv)
@@ -92,6 +169,10 @@ class Lac:
         return Config.LAC_CURR_PATH
 
     def _get_added_and_removed_contacts(self, prev_csv, curr_csv):
+        if not os.path.isfile(prev_csv):
+            # just make copy to avoid FNF erro
+            shutil.copyfile(curr_csv, prev_csv)
+
         compare_out = compare(
             load_csv(open(prev_csv)),
             load_csv(open(curr_csv))
@@ -112,54 +193,7 @@ class Lac:
 
         return added_data, removed_data
 
-    def create_new_lac_user(self, users_info):
-        """
-        Called by other systems (Acuity, ConvertKit)
-
-        Uses LessAnnoying CRM API to create new users (with group & note)
-
-        """
-        logger.info("Adding new user(s) to LessAnnoying CRM ...")
-
-        for user in users_info:
-            if not self.lac_api.user_exists(email=user["email"]):
-                lac_user_id = self.lac_api.create_new_user(user_data=user)
-                self.lac_api.add_user_to_group(user_id=lac_user_id, group_name=Config.LAC_NEW_USER_GROUP_NAME)
-
-                if user["note"]:
-                    self.lac_api.add_note_to_user(lac_user_id=lac_user_id, note=user["note"])
-                else:
-                    logger.warning("No note provided for user")
-
-                util.write_to_changelog(f"Created LAC user: {user['email']}")
-
-        # TODO update prev_lac file (after converting to JSON
-
-    def add_any_new_users_to_convertkit(self):
-        logger.info("""
-        *******************************
-        Syncing 
-            Less Annoying CRM --> ConvertKit
-        *******************************
-        """)
-
-        logger.info("Checking if any new LAC users ...")
-        self.get_any_new_lac_users()
-
-        if self.new_user_data:
-            logger.info("New LAC users found. Checking if new LAC users already exist in ConvertKit...")
-
-            new_ck_users = []
-            for new_lac_user in self.new_user_data:
-                user = {
-                    "first_name": new_lac_user["first_name"],
-                    "email": new_lac_user["email"]
-                }
-                new_ck_users.append(user)
-
-            self.ck_ui.add_users_to_ck(users_info=new_ck_users)
-
-
     def archive_downloaded_csv(self):
         logger.info("Archiving (renaming) LAC users ...")
-        os.rename(src=Config.LAC_CURR_PATH, dst=Config.LAC_PREV_PATH)
+        os.rename(src=Config.LAC_CURR_PATH, dst=Config.LAC_PREV_USERS_PATH)
+"""

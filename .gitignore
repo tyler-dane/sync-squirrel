@@ -1,4 +1,4 @@
-
+.spec
 .idea/
 geckodriver.log
 venv/
@@ -13,3 +13,5 @@ app/*/*__pycache__
 app/less_annoying_crm/__pycache__/
 */__pycache__/*
 CHANGE_LOG.txt
+build
+dist
