@@ -1,4 +1,27 @@
 class Con:
-    ARCHIVE_CSV_NAME = "list_users_previous.csv"
-    LAC_CURR_FILE = "lac_current.csv"
+    ACUITY_CURR_FILE = "list.csv"
+    ACUITY_HIST_FILE = "acuity_list_prev.csv"
+
+    CK_HIST_FILE = "convertkit_prev.json"
+
     LAC_HIST_USERS_FILE = "lac_prev.csv"
+
+    CHANGELOG = "CHANGE_LOG.txt"
+
+    START_SYNC_MSG = \
+        """
+       
+        $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+        
+                                                SYNCING ALL THE THINGS    
+        
+        $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+        
+        """
+    END_SYNC_MSG = \
+        """
+        ###############################################################################################################        
+                                                DONE SYNCING
+        ###############################################################################################################        
+        
+        """

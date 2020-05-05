@@ -1,0 +1,1 @@
+pyinstaller -F sync_squirrel.py --add-data config.dev.yaml:config.dev.yaml

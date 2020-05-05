@@ -1,8 +1,13 @@
-class Api:
-    def __init__(self, timeout=15):
-        self.timeout = timeout
+from app import logger
+import requests
+import json
 
-    """ commented out cuz api doesn't work
+
+class Api:
+    def __init__(self, uri_base, timeout=15):
+        self.timeout = timeout
+        self.base = uri_base
+
     def get_request(self, url):
         response = requests.request("GET", url)
         if response.status_code != 200:
@@ -11,4 +16,5 @@ class Api:
         else:
             resp_json = json.loads(response.content)
             return resp_json
-    """
+
+
