@@ -19,7 +19,7 @@ class Lac:
         self.timeout = timeout
         self.new_user_data = []  # to be added once checking for any new users
 
-    def get_any_new_lac_users(self):
+    def save_any_new_lac_users(self):
         curr_users = self.lac_api.get_all_contacts()
 
         if os.path.isfile(Config.LAC_PREV_USERS_PATH):
@@ -28,17 +28,22 @@ class Lac:
             prev_user_emails = []
             curr_user_emails = []
             for curr in curr_users:
-                curr_user_emails.append(curr["email"])  # make sure right key
+                e = curr["email"].lower()
+                curr_user_emails.append(e)  # make sure right key
             for prev in prev_users:
-                prev_user_emails.append(prev["email"])
+                e = prev["email"].lower()
+                prev_user_emails.append(e)
 
             for curr in curr_users:
-                if curr["email"] not in prev_user_emails:
+                if curr["email"].lower() not in prev_user_emails:
+                    curr["email"] = curr["email"].lower()
                     self.new_user_data.append(curr)
         else:
-            logger.info("No prev LAC users file. Saving curr and continuing")
-            app_utils.archive_curr_users(file=Config.LAC_PREV_USERS_PATH,
-                                         curr_users=curr_users)
+            logger.info("No prev LAC users file")
+
+        logger.info("Archiving curr users for next time")
+        app_utils.archive_curr_users(file=Config.LAC_PREV_USERS_PATH,
+                                     curr_users=curr_users)
 
     def get_prev_lac_users(self):
         with open(Config.LAC_PREV_USERS_PATH, "r") as prev_lac_f:
@@ -78,7 +83,7 @@ class Lac:
         """)
 
         logger.info("Checking if any new LAC users ...")
-        self.get_any_new_lac_users()
+        self.save_any_new_lac_users()
 
         if self.new_user_data:
             logger.info("New LAC users found. Checking if new LAC users already exist in ConvertKit...")
