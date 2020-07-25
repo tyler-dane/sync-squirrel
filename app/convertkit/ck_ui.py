@@ -5,7 +5,6 @@ from app import logger, driver, wait
 from app import util as app_util
 from app.config import Config
 from app.convertkit.ck_api import ConvertKitApi
-from app.convertkit import util
 
 
 class ConvertKitUi:

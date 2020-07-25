@@ -15,3 +15,4 @@ app/less_annoying_crm/__pycache__/
 CHANGE_LOG.txt
 build
 dist
+sync_squirrel.spec

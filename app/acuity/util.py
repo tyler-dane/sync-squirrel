@@ -92,10 +92,15 @@ def login_to_acuity():
     driver.get("https://secure.acuityscheduling.com/login.php")
 
     username_elem = driver.find_element_by_class_name("input-email")
-    password_elem = driver.find_element_by_class_name("input-password")
 
     username_elem.send_keys(Config.ACUITY_USER)
+
+    next_elem = driver.find_element_by_id("next-button")
+    next_elem.click()
+    time.sleep(Config.CONVERT_SLEEP_MED)
+
+    password_elem = driver.find_element_by_class_name("input-password")
     password_elem.send_keys(Config.ACUITY_PW)
 
-    submit_btn = driver.find_element_by_class_name("input-login")
-    submit_btn.click()
+    # submit_btn = driver.find_element_by_class_name("input-login")
+    next_elem.click()
