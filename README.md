@@ -1,5 +1,7 @@
 # sync-squirrel
 
+![Demo GIF](demo/sync-demo.gif)
+
 ## What It Does
 This project automates the tedious task of keeping user emails up-to-date across three systems: an email system, a scheduling system, and a CRM.
 
@@ -14,6 +16,11 @@ The Solution: A background app that continuously checks for any new users and im
 - Less Annoying CRM
 - Acuity
 
+## More Info
+[Website Post](https://switchback.techblog/sync/)
 
-## Development Guide
-See the Wiki for developement information
+[Full Demo](https://www.youtube.com/watch?v=myQNojFgcjc&t=101s)
+
+[Behind The Scenes Videos](https://www.youtube.com/playlist?list=PLrqlY5j4-vQMXfZe-UQP-jrFebYJuqUI_): Shows the development process. Accompanied by striking commentary.
+
+Development Info: See repo's Wiki
