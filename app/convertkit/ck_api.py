@@ -37,7 +37,7 @@ class ConvertKitApi(Api):
         curr_users = self.get_current_convertkit_users()
 
         for user in curr_users:
-            if user["email_address"] == user_email:
+            if user["email_address"].lower() == user_email.lower():
                 logger.info(f"{user_email} already exists in ConvertKit")
                 return True
 

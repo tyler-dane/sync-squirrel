@@ -6,7 +6,7 @@ from app.config import Config
 import logging
 
 opts = Options()
-opts.headless = Config.WEBDRIVER_HEADLESS
+# opts.headless = Config.WEBDRIVER_HEADLESS
 opts.add_experimental_option("prefs", {
   "download.default_directory": f"{Config.DOWNLOADS_DIR}",
   "download.prompt_for_download": False,

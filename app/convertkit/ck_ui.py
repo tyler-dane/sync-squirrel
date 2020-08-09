@@ -5,13 +5,13 @@ from app import logger, driver, wait
 from app import util as app_util
 from app.config import Config
 from app.convertkit.ck_api import ConvertKitApi
-from app.convertkit import util
 
 
 class ConvertKitUi:
-    def __init__(self, sequences=Config.CONVERT_SEQ, max_retries=10):
+    def __init__(self, sequences=Config.CONVERT_SEQ, max_retries=10, tags=Config.CONVERT_TAG):
         self.ck_api = ConvertKitApi()
         self.sequences = sequences
+        self.tag = tags
         self.max_retries = max_retries
         self.logged_in = False
 
@@ -32,8 +32,13 @@ class ConvertKitUi:
                     self._click_add_subs_home_btn()
                     self._click_add_single_sub_btn(first_name=first_name, email=email)
                     self._enter_name_and_email(first_name=first_name, email=email)
-                    self._click_sequences_dropdown()
-                    self._click_sequences_checkboxes()
+
+                    # using tags for demo
+                    self._click_tags_dropdown()
+                    self._click_tags_checkboxes()
+                    # uncommented cuz need pro version for sequences
+                    # self._click_sequences_dropdown()
+                    # self._click_sequences_checkboxes()
                     self._click_save_subscriber_btn()
 
                     app_util.write_to_changelog(f"Created ConvertKit user: {email}")
@@ -132,6 +137,37 @@ class ConvertKitUi:
             logger.info(f"\nFailed entering name & email. Trying again ...\n")
             time.sleep(1)
             self._enter_name_and_email(first_name, email)
+
+    def _click_tags_dropdown(self):
+        try:
+            # find Sequences dropdown
+            all_em_elems = driver.find_elements_by_tag_name("em")
+            reasonable_opts = []
+            for em_elem in all_em_elems:
+                if "0 of " in em_elem.text:
+                    reasonable_opts.append(em_elem)
+
+            # click dropdown
+            tags_dropdown = reasonable_opts[2]  # 0 = Forms; 1 = Sequences; 2 = Tags
+            tags_dropdown.click()
+        except (NoSuchElementException, TimeoutException) as ne:
+            logger.info(f"\nFailed clicking tags dropdown. Trying again ...\n")
+            time.sleep(1)
+            self._click_tags_dropdown()
+
+    def _click_tags_checkboxes(self):
+        try:
+            # click tag checkbox
+            label_elems = driver.find_elements_by_tag_name("label")
+            for label in label_elems:
+                if self.tag in label.text:
+                    label.click()
+                    break
+
+        except (NoSuchElementException, TimeoutException) as ne:
+            logger.info(f"\nFailed clicking sequences checkboxes. Trying again ...\n")
+            time.sleep(1)
+            self._click_sequences_checkboxes()
 
     def _click_sequences_dropdown(self):
         try:

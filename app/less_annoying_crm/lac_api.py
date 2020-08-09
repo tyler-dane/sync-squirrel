@@ -139,7 +139,7 @@ class LacApi:
 
                 num_emails = len(contact["Email"])
                 if num_emails > 1:
-                    logger.warning(f"{first_name} has more than 1 email. Only using first")
+                    logger.warning(f"\t{first_name} has more than 1 email. Only using first")
 
                 contact_info = {
                     "first_name": first_name,
