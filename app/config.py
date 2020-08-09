@@ -40,6 +40,7 @@ class Config:
     raw_seq = util.get_config_value_yaml(CONFIG_DATA, "convertkit.sequences")
     CONVERT_SEQ = []
     CONVERT_SEQ.append(raw_seq)
+    CONVERT_TAG = util.get_config_value_yaml(CONFIG_DATA, "convertkit.tag")
 
     CONVERT_PREV_USERS_PATH = os.path.join(DOWNLOADS_DIR, Con.CK_HIST_FILE)
     CONVERT_SLEEP_SHORT = util.get_config_value_yaml(CONFIG_DATA, "convertkit.sleep_short")
