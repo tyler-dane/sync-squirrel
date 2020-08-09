@@ -15,3 +15,5 @@ The Solution: A background app that continuously checks for any new users and im
 - Acuity
 
 
+## Development Guide
+See the Wiki for developement information
