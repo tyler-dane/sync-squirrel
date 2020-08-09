@@ -1,6 +1,6 @@
 # sync-squirrel
 
-![](sync-demo.gif)
+![](demo.gif)
 
 ## What It Does
 This project automates the tedious task of keeping user emails up-to-date across three systems: an email system, a scheduling system, and a CRM.
