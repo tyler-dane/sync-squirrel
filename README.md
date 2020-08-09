@@ -1,34 +1,17 @@
 # sync-squirrel
-Syncs contacts between Less-Annoying CRM, ConvertKit, Acuity
 
-## Build Notes
-`./build.sh` # <-- make sure `virtualenv` active
+## What It Does
+This project automates the tedious task of keeping user emails up-to-date across three systems: an email system, a scheduling system, and a CRM.
 
-## Install Notes
-Copy binary and config in `dist/` to desired directory
-Copy `run.sh` to desired directory and update with desired bath
-Copy `config.dev.yaml` to desired dir
+The Problem: It's time-consuming and soul-crushing to sync emails manually. So, it doesn't get done. As a result, my client's marketing campaigns weren't as successful as they could've been, because they weren't sending targeted emails to many of their users.
 
-#### Install chromedriver:
-- Works in Chrome and Chromium
-- TBD
+The Solution: A background app that continuously checks for any new users and immediately updates the other systems once it finds any.
 
-#### Cronjob:
-`crontab -e`:
+## Tech Stack
+- Python
+- Selenium Web Driver
+- ConvertKit
+- Less Annoying CRM
+- Acuity
 
-Runs every 10 minutes
-```bash
-*/10 * * * * /Users/ty/test/sync_1.0.0/run.sh
-```
-
-## Other notes
-Install Chromedriver on Linux:
-```bash
-sudo apt-get install chromium-chromedriver
-```
-
-See where binary installed
-```bash
-dpkg -L chromium-chromedriver
-```
 
