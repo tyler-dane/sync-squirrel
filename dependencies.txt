@@ -4,7 +4,7 @@ click==7.1.1
 csv-diff==0.6
 dictdiffer==0.8.1
 idna==2.9
-PyYAML==5.3.1
+PyYAML==5.4
 requests==2.23.0
 selenium==3.141.0
 urllib3==1.25.8
