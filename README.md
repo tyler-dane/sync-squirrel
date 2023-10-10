@@ -17,8 +17,6 @@ The Solution: A background app that continuously checks for any new users and im
 - Acuity
 
 ## More Info
-[Website Post](https://switchback.tech/blog/sync/)
-
 [Full Demo](https://www.youtube.com/watch?v=myQNojFgcjc&t=101s)
 
 [Behind The Scenes Videos](https://www.youtube.com/playlist?list=PLrqlY5j4-vQMXfZe-UQP-jrFebYJuqUI_): Shows the development process. Accompanied by striking commentary.
